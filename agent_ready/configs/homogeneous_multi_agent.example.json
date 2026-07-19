@@ -1,0 +1,35 @@
+{
+  "configuration_name": "homogeneous_four_role_multi_agent_example",
+  "shared_model": {
+    "provider": "REPLACE_WITH_PROVIDER",
+    "model_id": "REPLACE_WITH_EXACT_MODEL_ID",
+    "model_revision": "REPLACE_WITH_SNAPSHOT_OR_CHECKPOINT",
+    "access_date": "2026-01-01",
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "max_output_tokens": 512,
+    "reasoning_mode": "REPLACE_WITH_REPORTED_MODE",
+    "seed": null
+  },
+  "roles": {
+    "geo_agent": {"model_ref": "shared_model"},
+    "fire_behavior_agent": {"model_ref": "shared_model"},
+    "resource_history_agent": {"model_ref": "shared_model"},
+    "critic_agent": {"model_ref": "shared_model"}
+  },
+  "orchestration": {
+    "protocol": "protocols/agent_execution_protocol.md",
+    "decision_agent_execution": "parallel_independent",
+    "communication_rounds": 1,
+    "critic_ground_truth_access": "posthoc_only",
+    "message_schema": "schemas/agent_message.schema.json",
+    "state_schema": "schemas/agent_state.schema.json"
+  },
+  "evaluation": {
+    "split_manifest": "REPLACE_WITH_SPLIT_MANIFEST",
+    "ground_truth_release_phase": "post_prediction_only",
+    "report_model_calls": true,
+    "report_generated_tokens": true,
+    "report_latency": true
+  }
+}

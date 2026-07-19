@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fireagentbench.org/schemas/task_c_output.schema.json",
+  "title": "FireAgentBench Task C diagnostic output",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "incident_id",
+    "fire_day_date",
+    "taxonomy_version",
+    "failure_mode",
+    "responsible_module",
+    "supporting_evidence",
+    "suggested_update"
+  ],
+  "properties": {
+    "incident_id": {"type": "string", "minLength": 1},
+    "fire_day_date": {"type": "string", "format": "date"},
+    "taxonomy_version": {"type": "string", "minLength": 1},
+    "failure_mode": {"type": "string", "minLength": 1},
+    "responsible_module": {"type": "string", "minLength": 1},
+    "supporting_evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["view", "field"],
+        "properties": {
+          "view": {"type": "string"},
+          "field": {"type": "string"},
+          "value": {},
+          "relevance": {"type": "string"}
+        }
+      }
+    },
+    "suggested_update": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "operation", "description"],
+      "properties": {
+        "target": {"type": "string"},
+        "operation": {"type": "string", "enum": ["prompt", "policy", "memory", "routing", "no_update"]},
+        "description": {"type": "string", "minLength": 1}
+      }
+    },
+    "confidence": {"type": ["number", "null"], "minimum": 0, "maximum": 1}
+  }
+}

@@ -1,0 +1,23 @@
+field,definition
+fire_day_date,Calendar date of the deduplicated Fire-Day record.
+source_report_count,Number of source sitreps collapsed into this incident-date.
+fire_age_days,Days from discovery_date to fire_day_date.
+days_since_previous_report,Calendar-day gap from the preceding Fire-Day record.
+cost_increment_usd,Non-negative change in cumulative incident cost since the preceding report.
+average_daily_cost_usd,cost_increment_usd divided by the report gap in days.
+cost_interval_status,Quality status for the derived daily cost interval.
+personnel_delta,Change in total personnel from the preceding report.
+personnel_delta_per_day,Personnel change divided by the report gap.
+candidate_resource_action,"Sign-based candidate action: escalate, maintain, or drawdown; requires manual validation."
+next_fire_day_date,Date of the next available record for the same incident.
+days_to_next_report,Calendar-day gap to the next available record.
+target_next_day_personnel,Next-calendar-day total personnel; missing when the next report is not exactly one day later.
+target_next_day_daily_cost_usd,Next-calendar-day cost increment; only valid for a clean one-day interval.
+target_next_day_resource_action,Next-calendar-day candidate resource action.
+*_mean_3d / *_mean_7d,Trailing calendar-day mean including the current day; does not use future records.
+*_max_3d / *_max_7d,Trailing calendar-day maximum including the current day; does not use future records.
+eligible_state_understanding,Core observed fields are present for state classification.
+eligible_next_day_personnel,A consecutive next-day personnel target is available.
+eligible_next_day_cost,A valid consecutive next-day daily-cost target is available.
+has_valid_coordinates,Point-of-origin latitude and longitude fall in valid ranges.
+ics209_text_bundle,Deterministic labeled concatenation of available ICS-209 narrative fields; not a full GAL perception script.

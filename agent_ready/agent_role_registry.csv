@@ -1,0 +1,5 @@
+role_id,display_name,prediction_input,posthoc_input,prompt_section,state_scope,policy,allowed_message_types,ground_truth_access
+geo_agent,Geo Agent,agent_ready/geo_agent_view.csv,agent_ready/geo_agent_view.csv,1. Geo Agent,per_case_private,independent_evidence_analysis,evidence_report,never
+fire_behavior_agent,Fire Behavior Agent,agent_ready/fire_behavior_agent_view.csv,agent_ready/fire_behavior_agent_view.csv,2. Fire Behavior Agent,per_case_private,independent_evidence_analysis,evidence_report,never
+resource_history_agent,Resource History Agent,agent_ready/resource_history_agent_view.csv,agent_ready/resource_history_agent_view.csv,3. Resource History Agent,per_case_private,independent_evidence_analysis,evidence_report,never
+critic_agent,Critic Agent,role_messages_only,agent_ready/critic_agent_view.csv,4. Critic Agent,phase_scoped_private,review_revision_and_diagnosis,critique|revision_request|final_decision|diagnosis,posthoc_only

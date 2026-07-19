@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fireagentbench.org/schemas/agent_definition.schema.json",
+  "title": "FireAgentBench role-agent definition",
+  "description": "Machine-readable representation of A_r = (M, V_r, I_r, S_r, P_r, C_r).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["role_id", "model", "view", "instruction", "state", "policy", "communication"],
+  "properties": {
+    "role_id": {
+      "type": "string",
+      "enum": ["geo_agent", "fire_behavior_agent", "resource_history_agent", "critic_agent", "single_agent"]
+    },
+    "model": {"type": "object"},
+    "view": {
+      "type": "object",
+      "required": ["source", "access_phase"],
+      "properties": {
+        "source": {"type": "string"},
+        "access_phase": {"type": "string", "enum": ["prediction", "posthoc", "both"]}
+      }
+    },
+    "instruction": {"type": "object"},
+    "state": {"type": "object"},
+    "policy": {"type": "object"},
+    "communication": {"type": "object"}
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fireagentbench.org/schemas/model_config.schema.json",
+  "title": "FireAgentBench model configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "provider",
+    "model_id",
+    "model_revision",
+    "access_date",
+    "temperature",
+    "max_output_tokens"
+  ],
+  "properties": {
+    "provider": {"type": "string", "minLength": 1},
+    "model_id": {"type": "string", "minLength": 1},
+    "model_revision": {"type": "string", "minLength": 1},
+    "access_date": {"type": "string", "format": "date"},
+    "temperature": {"type": "number", "minimum": 0},
+    "top_p": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+    "max_output_tokens": {"type": "integer", "minimum": 1},
+    "reasoning_mode": {"type": "string"},
+    "seed": {"type": ["integer", "null"]}
+  }
+}
