@@ -84,12 +84,18 @@ FireAgentBench_main/
 │   ├── fire_day_response_labels.csv
 │   └── escalation_labels.csv
 ├── agent_ready/
+│   ├── README.md
 │   ├── geo_agent_view.csv
 │   ├── fire_behavior_agent_view.csv
 │   ├── resource_history_agent_view.csv
 │   ├── critic_agent_view.csv
 │   ├── agent_view_manifest.csv
-│   └── agent_prompt_templates.md
+│   ├── agent_role_registry.csv
+│   ├── agent_prompt_templates.md
+│   ├── configs/
+│   ├── schemas/
+│   ├── protocols/
+│   └── examples/
 └── metadata/
     ├── fireagentbench_derived_field_dictionary.csv
     └── checksums.sha256
@@ -104,12 +110,14 @@ FireAgentBench_main/
 
 ### Agent-ready views
 
+FireAgentBench defines a role-specific agent as `A_r = (M, V_r, I_r, S_r, P_r, C_r)`, comprising a versioned model backbone, role-specific view, instruction, private state, execution policy, and communication interface. The dataset fixes the latter five interface components while allowing researchers to compare different model backbones under identical evidence and orchestration. The complete specification is in `agent_ready/README.md`.
+
 - **Geo Agent:** location, jurisdiction, coordinates, terrain, fuel descriptors, and LANDFIRE context.
 - **Fire Behavior Agent:** fire size and growth, containment, observed behavior, FIRMS activity, gridMET conditions, and recent trends.
 - **Resource History Agent:** personnel, aerial resources, cost history, command structure, suppression strategy, closures, evacuations, and impacts.
 - **Critic Agent:** the complete evaluation record, including ground truth and eligibility. This view must not be exposed to a decision agent before prediction.
 
-The prompt templates define role boundaries and recommended structured outputs. Natural-language observations are intentionally not pre-generated: researchers can render observations at experiment time with their selected model while preserving provenance and avoiding stale model-specific text.
+The release additionally provides model-configuration templates, state/message/output JSON schemas, single- and multi-agent execution protocols, Task C contamination controls, and a runnable case-preparation example. Natural-language observations are intentionally not pre-generated: researchers render them at experiment time with the selected model while preserving provenance and avoiding stale model-specific text.
 
 ## Quick start
 
@@ -161,4 +169,3 @@ shasum -a 256 -c metadata/checksums.sha256
 ```
 
 When using FireAgentBench, cite the accompanying FireAgentBench paper or repository release and acknowledge the upstream datasets listed above. The original FireAgentBench curation, labels, prompt templates, and documentation are provided under the terms in `LICENSE.md`; upstream data remain subject to their respective attribution and use guidance.
-
