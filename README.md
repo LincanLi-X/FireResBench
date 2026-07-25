@@ -1,6 +1,6 @@
-# FireAgentBench
+# FireRespBench
 
-**FireAgentBench** is an agent-ready benchmark for wildfire emergency-management research. It organizes multi-source incident, fire-activity, weather, landscape, and response data into daily wildfire cases that can be used by tabular models, time-series models, single LLM agents, and multi-agent systems.
+**FireRespBench** is an agent-ready benchmark for wildfire emergency-management research. It organizes multi-source incident, fire-activity, weather, landscape, and response data into daily wildfire cases that can be used by tabular models, time-series models, single LLM agents, and multi-agent systems.
 
 The fundamental sample is a **Fire-Day**:
 
@@ -23,11 +23,11 @@ Each row describes one wildfire incident on one calendar day. The release covers
 | Next-day daily-cost targets | 20,511 |
 | Eligible resource-action labels | 20,803 |
 
-The eligible resource-action subset contains 4,968 `escalate`, 8,483 `maintain`, and 7,352 `drawdown` cases. Counts and release-scope notes are also available in `processed/fireagentbench_fire_day_features_2017to2020_summary.csv`.
+The eligible resource-action subset contains 4,968 `escalate`, 8,483 `maintain`, and 7,352 `drawdown` cases. Counts and release-scope notes are also available in `processed/FireRespBench_fire_day_features_2017to2020_summary.csv`.
 
-## Why FireAgentBench?
+## Why FireRespBench?
 
-Most wildfire datasets focus on hotspot detection, burned-area mapping, spread modeling, or remote-sensing prediction. FireAgentBench instead represents the evolving operational state of an incident. It combines the current Fire-Day with recent temporal context, resource history, environmental evidence, supervised next-day targets, role-specific views, and explicit evaluation eligibility flags.
+Most wildfire datasets focus on hotspot detection, burned-area mapping, spread modeling, or remote-sensing prediction. FireRespBench instead represents the evolving operational state of an incident. It combines the current Fire-Day with recent temporal context, resource history, environmental evidence, supervised next-day targets, role-specific views, and explicit evaluation eligibility flags.
 
 This design supports three model families under a common data interface:
 
@@ -37,7 +37,7 @@ This design supports three model families under a common data interface:
 
 ## Data sources
 
-| Source | Information used in this release | Role in FireAgentBench |
+| Source | Information used in this release | Role in FireRespBench |
 |---|---|---|
 | [ICS-209-PLUS](https://doi.org/10.1038/s41597-023-01955-0) | Incident status, location, fire behavior, containment, personnel, cumulative cost, command structure, evacuations, closures, and impacts | Core incident timeline and response supervision |
 | [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov/) | Same-day active-fire detections, fire radiative power (FRP), and detection confidence | Daily fire-activity evidence aggregated around incident locations |
@@ -61,7 +61,7 @@ The public subset contains only cases for which the required feature constructio
 
 ## Benchmark tracks
 
-FireAgentBench is organized around three research tracks.
+FireRespBench is organized around three research tracks.
 
 | Track | Goal | Expected output | Suggested metrics | Primary release artifacts |
 |---|---|---|---|---|
@@ -74,12 +74,12 @@ Track 2 has direct supervised target files in this release. Track 1 supplies the
 ## Repository structure
 
 ```text
-FireAgentBench_main/
+FireRespBench_main/
 ├── README.md
 ├── LICENSE.md
 ├── processed/
-│   ├── fireagentbench_fire_day_features_2017to2020.csv
-│   └── fireagentbench_fire_day_features_2017to2020_summary.csv
+│   ├── FireRespBench_fire_day_features_2017to2020.csv
+│   └── FireRespBench_fire_day_features_2017to2020_summary.csv
 ├── labels/
 │   ├── fire_day_response_labels.csv
 │   └── escalation_labels.csv
@@ -97,20 +97,20 @@ FireAgentBench_main/
 │   ├── protocols/
 │   └── examples/
 └── metadata/
-    ├── fireagentbench_derived_field_dictionary.csv
+    ├── FireRespBench_derived_field_dictionary.csv
     └── checksums.sha256
 ```
 
 ### Main data files
 
-- `processed/fireagentbench_fire_day_features_2017to2020.csv` is the complete modeling table. It contains ICS-209-derived incident fields, temporal features, response targets and eligibility flags, FIRMS aggregates, gridMET variables, and LANDFIRE summaries.
+- `processed/FireRespBench_fire_day_features_2017to2020.csv` is the complete modeling table. It contains ICS-209-derived incident fields, temporal features, response targets and eligibility flags, FIRMS aggregates, gridMET variables, and LANDFIRE summaries.
 - `labels/fire_day_response_labels.csv` contains next-day personnel, daily-cost, and resource-action targets plus label evidence, confidence, status, and eligibility.
 - `labels/escalation_labels.csv` is a compact action-classification table for `escalate`, `maintain`, and `drawdown` experiments.
-- `metadata/fireagentbench_derived_field_dictionary.csv` documents key derived fields and their construction logic.
+- `metadata/FireRespBench_derived_field_dictionary.csv` documents key derived fields and their construction logic.
 
 ### Agent-ready views
 
-FireAgentBench defines a role-specific agent as `A_r = (M, V_r, I_r, S_r, P_r, C_r)`, comprising a versioned model backbone, role-specific view, instruction, private state, execution policy, and communication interface. The dataset fixes the latter five interface components while allowing researchers to compare different model backbones under identical evidence and orchestration. The complete specification is in `agent_ready/README.md`.
+FireRespBench defines a role-specific agent as `A_r = (M, V_r, I_r, S_r, P_r, C_r)`, comprising a versioned model backbone, role-specific view, instruction, private state, execution policy, and communication interface. The dataset fixes the latter five interface components while allowing researchers to compare different model backbones under identical evidence and orchestration. The complete specification is in `agent_ready/README.md`.
 
 - **Geo Agent:** location, jurisdiction, coordinates, terrain, fuel descriptors, and LANDFIRE context.
 - **Fire Behavior Agent:** fire size and growth, containment, observed behavior, FIRMS activity, gridMET conditions, and recent trends.
@@ -125,10 +125,10 @@ The release additionally provides model-configuration templates, state/message/o
 from pathlib import Path
 import pandas as pd
 
-root = Path("FireAgentBench_main")
+root = Path("FireRespBench_main")
 
 features = pd.read_csv(
-    root / "processed/fireagentbench_fire_day_features_2017to2020.csv",
+    root / "processed/FireRespBench_fire_day_features_2017to2020.csv",
     low_memory=False,
 )
 labels = pd.read_csv(root / "labels/fire_day_response_labels.csv")
@@ -156,7 +156,7 @@ action_cases = labels.loc[
 
 ## Limitations and responsible use
 
-FireAgentBench inherits reporting gaps, corrections, spatial uncertainty, and operational biases from its source systems. FIRMS detections are affected by satellite coverage, clouds, and sensor characteristics; gridMET represents gridded rather than on-scene weather; LANDFIRE is a landscape-scale product; and daily cost is a derived estimate between irregular cumulative reports. The dataset covers large reported incidents and is not representative of every wildfire.
+FireRespBench inherits reporting gaps, corrections, spatial uncertainty, and operational biases from its source systems. FIRMS detections are affected by satellite coverage, clouds, and sensor characteristics; gridMET represents gridded rather than on-scene weather; LANDFIRE is a landscape-scale product; and daily cost is a derived estimate between irregular cumulative reports. The dataset covers large reported incidents and is not representative of every wildfire.
 
 This benchmark is for research, education, retrospective analysis, and method comparison. It is **not** a real-time decision-support product and must not replace incident commanders, fire-behavior analysts, dispatch systems, local observations, or agency procedures.
 
@@ -168,4 +168,4 @@ From the repository root, verify release files with:
 shasum -a 256 -c metadata/checksums.sha256
 ```
 
-When using FireAgentBench, cite the accompanying FireAgentBench paper or repository release and acknowledge the upstream datasets listed above. The original FireAgentBench curation, labels, prompt templates, and documentation are provided under the terms in `LICENSE.md`; upstream data remain subject to their respective attribution and use guidance.
+When using FireRespBench, cite the accompanying FireRespBench paper or repository release and acknowledge the upstream datasets listed above. The original FireRespBench curation, labels, prompt templates, and documentation are provided under the terms in `LICENSE.md`; upstream data remain subject to their respective attribution and use guidance.
