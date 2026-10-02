@@ -1,0 +1,46 @@
+{
+  "benchmark_name": "FireResBench",
+  "subset_name": "TaskB-2017to2020",
+  "construction_version": "task-b-2017to2020-v1.0.0",
+  "date_range": {
+    "start": "2017-01-01",
+    "end": "2020-12-31"
+  },
+  "date_policy": "calendar date of the ICS-209 report-local REPORT_TO_DATE timestamp; no UTC conversion",
+  "same_day_policy": "latest valid value by REPORT_TO_DATE, then REPORT_FROM_DATE, then source row id; fields are resolved independently",
+  "strict_next_day_gap_days": 1,
+  "personnel": {
+    "source_field": "TOTAL_PERSONNEL",
+    "target_name": "next_day_personnel",
+    "minimum": 0,
+    "maximum": 10000,
+    "use_difference": false
+  },
+  "daily_cost": {
+    "source_field": "EST_IM_COST_TO_DATE",
+    "target_name": "daily_cost_usd",
+    "minimum": 0,
+    "maximum_per_day": 50000000,
+    "require_as_reported_value": true,
+    "allow_future_repair": false,
+    "negative_revision_policy": "exclude_without_clipping"
+  },
+  "aerial": {
+    "source_field": "TOTAL_AERIAL",
+    "role": "current_input_only",
+    "use_difference": false
+  },
+  "split": {
+    "unit": "incident_id",
+    "seed": 2027,
+    "train_fraction": 0.8,
+    "validation_fraction": 0.1,
+    "test_fraction": 0.1
+  },
+  "forbidden_targets": [
+    "resource_action",
+    "escalate",
+    "maintain",
+    "drawdown"
+  ]
+}
