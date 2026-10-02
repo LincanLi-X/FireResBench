@@ -1,171 +1,285 @@
-# FireRespBench
+# FireResBench
 
-**FireRespBench** is an agent-ready benchmark for wildfire emergency-management research. It organizes multi-source incident, fire-activity, weather, landscape, and response data into daily wildfire cases that can be used by tabular models, time-series models, single LLM agents, and multi-agent systems.
+**FireResBench** is an event-centered benchmark for connecting
+evolving wildfire conditions with real-world emergency-response histories. It
+organizes heterogeneous wildfire records into temporally ordered
+**Fire-Day** sequences and supports reproducible study of two complementary
+problems:
 
-The fundamental sample is a **Fire-Day**:
+1. **Task A -- Wildfire Lifecycle State Understanding:** classify the current
+   Fire-Day into one of five operational lifecycle states.
+2. **Task B -- Next-Day Operational-Response Forecasting:** independently
+   forecast next-day personnel and next-day incident cost.
+
+NOTE: This benchmark should not be treated as a real-time wildfire incident-command or automated resource-allocation system.
+
+## Benchmark at a glance
+
+### *Source cohort and coverage*
+
+| Statistic | Value |
+|---|---:|
+| Temporal coverage | Jan. 2017–Dec. 2020 |
+| Spatial coverage | CONUS; 48 states represented |
+| Source-cohort Fire-Days | 36,061 |
+
+### *Model-ready dataset*
+
+| Statistic | Value |
+|---|---:|
+| Fire-Day instances | 33,303 |
+| Unique incidents | 5,728 |
+| Data and metadata fields | 216 |
+
+### *Task A lifecycle-label distribution*
+
+| Lifecycle state | Share of labeled Fire-Days |
+|---|---:|
+| Initial attack | 14.24% |
+| Rapid escalation | 22.13% |
+| Extended attack | 24.47% |
+| Containment | 21.72% |
+| Mop-up/monitoring | 17.44% |
+
+### *Task B target distribution*
+
+| Target | Median | P90 | P99 |
+|---|---:|---:|---:|
+| Next-day personnel | 57 | 306 | — |
+| Daily cost (USD) | $100K | $1.1M | $5.2M |
+
+### *Incident history length*
+
+| Statistic | Median | P75 | Maximum |
+|---|---:|---:|---:|
+| Fire-Days per incident | 4 | 7 | 117 |
+The fundamental sample is a Fire-Day:
 
 ```text
 Fire-Day = (incident_id, fire_day_date)
 ```
 
-Each row describes one wildfire incident on one calendar day. The release covers a feature-complete, CONUS-focused subset from 2017-2020. It is intended for reproducible research and retrospective evaluation, not for live incident command or operational deployment.
-
-## Dataset at a glance
-
-| Item | Value |
-|---|---:|
-| Time span | 2017-01-01 to 2020-12-31 |
-| Fire-Day samples | 33,303 |
-| Wildfire incidents | 5,728 |
-| Main-table columns | 216 |
-| State-understanding eligible samples | 33,282 |
-| Next-day personnel targets | 22,476 |
-| Next-day daily-cost targets | 20,511 |
-| Eligible resource-action labels | 20,803 |
-
-The eligible resource-action subset contains 4,968 `escalate`, 8,483 `maintain`, and 7,352 `drawdown` cases. Counts and release-scope notes are also available in `processed/FireRespBench_fire_day_features_2017to2020_summary.csv`.
-
-## Why FireRespBench?
-
-Most wildfire datasets focus on hotspot detection, burned-area mapping, spread modeling, or remote-sensing prediction. FireRespBench instead represents the evolving operational state of an incident. It combines the current Fire-Day with recent temporal context, resource history, environmental evidence, supervised next-day targets, role-specific views, and explicit evaluation eligibility flags.
-
-This design supports three model families under a common data interface:
-
-- conventional tabular and time-series baselines;
-- single-agent LLM systems using structured Fire-Day evidence;
-- multi-agent systems with separated geographic, fire-behavior, resource-history, and critic roles.
+Each Fire-Day represents one wildfire incident on one calendar day. Records
+from the same incident remain chronologically linked rather than being treated
+as independent observations. Prediction-time features use only the current
+Fire-Day and information observed on earlier Fire-Days from the same incident.
 
 ## Data sources
 
-| Source | Information used in this release | Role in FireRespBench |
+FireResBench integrates four public data-source families into a unified Fire-Day representation. ICS-209-PLUS provides the raw incident-level wildfire situation reports (which can be used to extract operational-response history). NASA FIRMS supplies date-aligned observations of active-fire activity. gridMET and LANDFIRE contribute meteorological and landscape covariates, respectively. For supervision construction, Task A uses evidence from ICS-209-PLUS and FIRMS, whereas the targets in Task B are derived from consecutive ICS-209 reports. gridMET and LANDFIRE are used as data features and do not define Task A labels or Task B targets.
+
+| Source | Information used | Role in FireResBench |
 |---|---|---|
-| [ICS-209-PLUS](https://doi.org/10.1038/s41597-023-01955-0) | Incident status, location, fire behavior, containment, personnel, cumulative cost, command structure, evacuations, closures, and impacts | Core incident timeline and response supervision |
-| [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov/) | Same-day active-fire detections, fire radiative power (FRP), and detection confidence | Daily fire-activity evidence aggregated around incident locations |
-| [gridMET](https://www.climatologylab.org/gridmet.html) | Burning Index, wind speed, maximum/minimum temperature, and 100-hour/1000-hour dead-fuel moisture | Daily weather and fire-danger context from the nearest grid cell |
-| [LANDFIRE](https://www.landfire.gov/) | Existing Vegetation Type (EVT), Cover (EVC), and Height (EVH) | Static landscape context summarized around each incident |
+| ICS-209-PLUS | Incident identifiers and timestamps; reported area, containment, fire behavior, impacts, personnel, and cumulative incident cost | Provides the incident-centered Fire-Day timeline, current and historical operational evidence, evidence for Task A lifecycle supervision, and the sole source of Task B next-day personnel and daily-cost targets |
+| NASA FIRMS | Date-aligned VIIRS active-fire detections, detection counts, confidence, and fire radiative power within incident-centered spatial buffers | Provides satellite evidence of current fire activity for model inputs and Task A lifecycle-supervision construction; it does not define Task B targets |
+| gridMET | Daily fire-danger, wind, temperature, and fuel-moisture variables, together with backward-looking summaries | Provides time-varying meteorological and environmental covariates for model inputs; it is not used to construct lifecycle labels or operational-response targets |
+| LANDFIRE | Existing vegetation type, vegetation cover, and vegetation height summarized around each incident location | Provides static landscape and vegetation covariates for model inputs; it is not used to construct lifecycle labels or operational-response targets |
 
-The current release contains these four source families. MTBS was considered in the broader benchmark design but is not included as a feature block in the released files.
 
-## How the dataset was built
 
-1. **Incident selection and normalization.** Wildfire records from ICS-209-PLUS were restricted to 2017-2020, and event identifiers, dates, coordinates, units, and incident types were standardized.
-2. **Fire-Day construction.** Multiple situation reports for the same incident and date were deduplicated into a single daily record. Source-report counts and quality flags preserve information about collapsed, missing, or invalid observations.
-3. **Temporal features.** Incident histories were ordered by date. Fire size, containment, personnel, cost, and fire-severity indicators were summarized with trailing 3-day and 7-day means or maxima using current and past records only.
-4. **FIRMS alignment.** Same-day active-fire observations were aggregated within 1 km and 5 km of each incident location. Released features include detection counts, FRP summaries, confidence summaries, and match-status fields.
-5. **gridMET alignment.** Daily meteorological and fuel-moisture variables were joined from the nearest CONUS grid cell, followed by selected 3-day and 7-day rolling summaries and Celsius temperature conversions.
-6. **LANDFIRE alignment.** Dominant EVT, EVC, and EVH classes were summarized at 1 km and 5 km scales, together with dominant-class proportions and valid-pixel support.
-7. **Response labels.** Consecutive next-calendar-day targets were constructed for personnel and daily cost. Because ICS-209 reports cumulative incident cost, daily cost was derived from non-negative cost increments, report intervals, and anomaly checks rather than treating cumulative cost as a daily label. Resource actions were assigned as `escalate`, `maintain`, or `drawdown` from personnel and cost signals; agreement, conflict, confidence, and eligibility are retained explicitly.
-8. **Agent views.** The integrated table was projected into role-specific views. Decision-agent views exclude next-day ground truth, while the critic view retains targets and eligibility flags for scoring and error analysis.
+## Benchmark tasks
 
-The public subset contains only cases for which the required feature construction could be completed consistently. Events from Alaska, Hawaii, records with missing state information, and one uncovered Florida incident were excluded because a complete aligned environmental feature set was unavailable under the release pipeline.
+### Task A: Wildfire Lifecycle State Understanding
 
-## Benchmark tracks
+Given observations for incident `i` on day `t` and its available history
+through day `t`, Task A predicts one of five lifecycle states:
 
-FireRespBench is organized around three research tracks.
+```text
+initial_attack
+rapid_escalation
+extended_attack
+containment
+mop_up_monitoring
+```
 
-| Track | Goal | Expected output | Suggested metrics | Primary release artifacts |
-|---|---|---|---|---|
-| **Track 1: Wildfire State Understanding** | Infer the current operational phase and produce an evidence-grounded state assessment | `Initial attack`, `Rapid escalation`, `Extended attack`, `Containment`, or `Mop-up/monitoring`, optionally with cited evidence | Accuracy, Macro-F1, per-stage F1, evidence grounding | Main table, Geo view, Fire Behavior view, `eligible_state_understanding` |
-| **Track 2: Daily Resource Recommendation** | Predict next-day resource needs and the direction of resource change | `daily_personnel`, `daily_cost_usd`, and `escalate`/`maintain`/`drawdown` | MAE/RMSE, action Macro-F1, peak-demand error, drawdown smoothness | Main table and both files in `labels/` |
-| **Track 3: Error Diagnosis and Self-Evolution** | Diagnose a failed agent decision and identify how the system should improve | `failure_mode`, `responsible_module`, `suggested_update`, and supporting evidence | Diagnostic accuracy, module attribution, evidence grounding, update effectiveness | Role views, Critic view, and prompt templates |
+The original data source does not contain the wildfire lifecycle state labels, we therefore develop a **two-stage labeling framework** to give each Fire-Day instance a robust lifecycle state label. 
 
-Track 2 has direct supervised target files in this release. Track 1 supplies the feature-complete eligibility set and five-stage task protocol; a paper-specific canonical stage mapping should be reported with the experiment. Track 3 is evaluated after model predictions are available: the released critic view provides the complete case and ground truth, while failure taxonomies and update-effectiveness tests belong to the evaluated agent protocol rather than to a precomputed natural-language label file.
+**`Stage 1.`** **Deterministic pre-annotation.** Domain scholars and researchers define the lifecycle taxonomy, evidence thresholds, rule priority, and temporal constraints. The verified program derives evidence from fire age, area and growth, containment, FIRMS activity, reported fire behavior, personnel, and cost history, and then assigns a provisional state. 
+
+**`Stage 2.`** **Human scholar team review.** Two reviewer teams inspect Fire-Days in incident-level chronological context. A third team adjudicates every disagreement or deferral. Outputs retain the reviewer models, actions, rationales, agreement, adjudication, and evaluation-eligibility fields.
+
+The Stage 1 implementation preserves the activated rules, evidence signals,
+confidence, transition status, missingness, and review-routing reasons for
+every annotation. It also enforces temporal consistency: lifecycle sequences
+normally remain in the current phase or advance, while renewed escalation is
+permitted only when supporting evidence is observed.
+
+Primary Task A metrics are **Macro-F1**, **balanced accuracy**, and mean
+**Phase Distance**. Transition accuracy, per-class F1, calibration error, and
+the row-normalized confusion matrix support finer-grained diagnosis.
+
+### Task B: Next-Day Operational-Response Forecasting
+
+Task B contains two regression targets. For consecutive Fire-Days from the same incident, let $P(i,t)$ be reported total personnel and
+$C(i,t)$ be the as-reported cumulative incident-cost estimate. The targets are:
+
+```text
+next_day_personnel(i,t) = P(i,t+1)
+daily_cost_usd(i,t) = C(i,t+1) - C(i,t)
+```
+
+The personnel target is the next-day resource level and is **not** differenced.
+The cost target is the one-day increment between cumulative cost estimates. Personnel and cost eligibility are evaluated independently.
+
+Missing endpoints are not imputed. Negative cost revisions, increments above USD 50 million, and invalid values are retained with
+explicit status and provenance fields but are excluded from eligible target sets. 
+
+Primary Task B metrics are personnel **MAE** and daily-cost **MAE** in their original units. **NMAE** and **RMSE** measure normalized and large-error behavior, while peak-personnel error, peak-timing error, and cumulative-cost error evaluate complete incident trajectories.
+
 
 ## Repository structure
 
 ```text
-FireRespBench_main/
-├── README.md
-├── LICENSE.md
-├── processed/
-│   ├── FireRespBench_fire_day_features_2017to2020.csv
-│   └── FireRespBench_fire_day_features_2017to2020_summary.csv
-├── labels/
-│   ├── fire_day_response_labels.csv
-│   └── escalation_labels.csv
-├── agent_ready/
-│   ├── README.md
-│   ├── geo_agent_view.csv
-│   ├── fire_behavior_agent_view.csv
-│   ├── resource_history_agent_view.csv
-│   ├── critic_agent_view.csv
-│   ├── agent_view_manifest.csv
-│   ├── agent_role_registry.csv
-│   ├── agent_prompt_templates.md
-│   ├── configs/
-│   ├── schemas/
-│   ├── protocols/
-│   └── examples/
-└── metadata/
-    ├── FireRespBench_derived_field_dictionary.csv
-    └── checksums.sha256
+FireResBench Tree File Structure
+TO BE COMPLETED
 ```
 
-### Main data files
-
-- `processed/FireRespBench_fire_day_features_2017to2020.csv` is the complete modeling table. It contains ICS-209-derived incident fields, temporal features, response targets and eligibility flags, FIRMS aggregates, gridMET variables, and LANDFIRE summaries.
-- `labels/fire_day_response_labels.csv` contains next-day personnel, daily-cost, and resource-action targets plus label evidence, confidence, status, and eligibility.
-- `labels/escalation_labels.csv` is a compact action-classification table for `escalate`, `maintain`, and `drawdown` experiments.
-- `metadata/FireRespBench_derived_field_dictionary.csv` documents key derived fields and their construction logic.
-
-### Agent-ready views
-
-FireRespBench defines a role-specific agent as `A_r = (M, V_r, I_r, S_r, P_r, C_r)`, comprising a versioned model backbone, role-specific view, instruction, private state, execution policy, and communication interface. The dataset fixes the latter five interface components while allowing researchers to compare different model backbones under identical evidence and orchestration. The complete specification is in `agent_ready/README.md`.
-
-- **Geo Agent:** location, jurisdiction, coordinates, terrain, fuel descriptors, and LANDFIRE context.
-- **Fire Behavior Agent:** fire size and growth, containment, observed behavior, FIRMS activity, gridMET conditions, and recent trends.
-- **Resource History Agent:** personnel, aerial resources, cost history, command structure, suppression strategy, closures, evacuations, and impacts.
-- **Critic Agent:** the complete evaluation record, including ground truth and eligibility. This view must not be exposed to a decision agent before prediction.
-
-The release additionally provides model-configuration templates, state/message/output JSON schemas, single- and multi-agent execution protocols, Task C contamination controls, and a runnable case-preparation example. Natural-language observations are intentionally not pre-generated: researchers render them at experiment time with the selected model while preserving provenance and avoiding stale model-specific text.
 
 ## Quick start
+
+### Load Task A artifacts
 
 ```python
 from pathlib import Path
 import pandas as pd
 
-root = Path("FireRespBench_main")
+root = Path("FireResBench")
+keys = ["incident_id", "fire_day_date"]
 
-features = pd.read_csv(
-    root / "processed/FireRespBench_fire_day_features_2017to2020.csv",
+task_a_features = pd.read_csv(
+    root / "task_a_labeling/processed/fire_day_features_2017to2020.csv",
     low_memory=False,
 )
-labels = pd.read_csv(root / "labels/fire_day_response_labels.csv")
-
-keys = ["incident_id", "fire_day_date"]
-assert not features.duplicated(keys).any()
-assert set(map(tuple, features[keys].to_numpy())) == set(
-    map(tuple, labels[keys].to_numpy())
+task_a_labels = pd.read_csv(
+    root / "task_a_labeling/labels/final_expert_labels.csv",
+    low_memory=False,
 )
 
-# Example: eligible next-day resource-action cases
-action_cases = labels.loc[
-    labels["eligible_resource_action"].eq(1),
-    keys + ["resource_action", "action_label_confidence"],
-]
+task_a = task_a_features.merge(
+    task_a_labels.loc[
+        task_a_labels["supervised_evaluation_eligible"].eq(1),
+        keys + ["final_lifecycle_label"],
+    ],
+    on=keys,
+    how="inner",
+    validate="one_to_one",
+)
 ```
+
+### Load Task B features, targets, and splits
+
+```python
+from pathlib import Path
+import pandas as pd
+
+root = Path("FireResBench")
+keys = ["incident_id", "fire_day_date"]
+
+task_b_features = pd.read_csv(
+    root / "task_b_labeling/processed/fire_res_bench_task_b_features_2017to2020.csv",
+    low_memory=False,
+)
+task_b_targets = pd.read_csv(
+    root / "task_b_labeling/labels/task_b_targets_2017to2020.csv",
+    low_memory=False,
+)
+splits = pd.read_csv(
+    root / "task_b_labeling/metadata/incident_disjoint_splits.csv"
+)
+
+task_b = (
+    task_b_features
+    .merge(task_b_targets, on=keys, how="inner", validate="one_to_one")
+    .merge(splits, on="incident_id", how="left", validate="many_to_one")
+)
+
+personnel_cases = task_b.loc[task_b["eligible_next_day_personnel"].eq(1)]
+cost_cases = task_b.loc[task_b["eligible_daily_cost"].eq(1)]
+```
+
+For model inputs, use only fields listed in the corresponding
+`task_*_feature_allowlist.json`. Identifiers, target-construction metadata,
+eligibility indicators, future outcomes, and annotation metadata are not
+prediction features.
+
+## Rebuilding and verification (从这里开始往后改)
+
+Run commands from the project root.
+
+### Task A automatic pre-annotation artifacts
+
+```bash
+python FireResBench/task_a_labeling/build_task_a_stage1.py
+python -m unittest discover -s FireResBench/task_a_labeling/tests -v
+(cd FireResBench/task_a_labeling && \
+  shasum -a 256 -c metadata/checksums.sha256)
+```
+
+The default build expects the ICS-209-PLUS SitRep table, annual 2017--2020
+FIRMS VIIRS files, and the frozen labeling guide at the paths documented in
+`task_a_labeling/README.md` and `task_a_labeling/DATA_SOURCES.md`.
+
+### Task B
+
+```bash
+python FireResBench/task_b_labeling/build_task_b_2017to2020.py
+python -m unittest discover -s FireResBench/task_b_labeling/tests -v
+(cd FireResBench/task_b_labeling && \
+  shasum -a 256 -c metadata/checksums.sha256)
+```
+
+By default, Task B uses the included compact snapshot of as-reported ICS-209
+fields. It can also regenerate that snapshot from the official ICS-209 source
+archive described in `task_b_labeling/DATA_SOURCES.md`.
+
+The current full-range Task B builder retains a compatibility dependency on
+the audited core in `FireAgentBench/TaskB-2020/build_task_b_2020.py` and the
+frozen aligned Fire-Day table under `FireAgentBench/processed/`. These
+dependencies must remain available when rebuilding this repository snapshot.
 
 ## Evaluation and leakage prevention
 
-- Split by `incident_id`, not by individual rows. Random Fire-Day splits can place different days from the same incident in both train and test sets.
-- For temporal generalization, use year-held-out evaluation, such as training on 2017-2019 and testing on 2020.
-- Filter each target with its corresponding `eligible_*` flag and report the resulting sample count.
-- Do not expose `daily_personnel`, `daily_cost_usd`, `resource_action`, next-day target fields, or the Critic view to a decision model before inference.
-- Treat missing values as missing evidence. Use the provided match-status, invalid-value, confidence, and eligibility fields rather than silently imputing them as observed zeros.
+- Split data by `incident_id`, never by individual Fire-Days. Different days
+  from one incident must not appear in both training and evaluation sets.
+- The released Task B split uses a deterministic 80%/10%/10%
+  train/validation/test partition with seed 2027.
+- Construct temporal inputs only after sorting within each incident. All
+  lagged and rolling windows must end no later than the prediction Fire-Day.
+- Exclude next-day targets, final incident outcomes, label-construction fields,
+  expert-review metadata, eligibility flags, and all future-derived variables
+  from model inputs.
+- Treat missing evidence as missing. Do not silently convert failed source
+  alignment or unavailable observations into observed zeros.
+- Report task-specific sample counts together with evaluation results.
+
+## Provenance and quality assurance
+
+FireResBench retains source-report identifiers, same-day collapse decisions,
+field-level status, anomaly records, feature allowlists, data dictionaries,
+construction versions, input hashes, and output checksums. Automated tests
+cover lifecycle-rule behavior, temporal constraints, target semantics,
+incident-disjoint splitting, and key leakage controls.
+
+The Task B release restores cumulative cost directly from the official
+as-reported ICS-209 archive. Cleaned or repaired cost values are retained only
+for provenance comparison and do not serve as released target endpoints.
 
 ## Limitations and responsible use
 
-FireRespBench inherits reporting gaps, corrections, spatial uncertainty, and operational biases from its source systems. FIRMS detections are affected by satellite coverage, clouds, and sensor characteristics; gridMET represents gridded rather than on-scene weather; LANDFIRE is a landscape-scale product; and daily cost is a derived estimate between irregular cumulative reports. The dataset covers large reported incidents and is not representative of every wildfire.
+FireResBench inherits reporting gaps, corrections, spatial uncertainty, and
+institutional biases from its source systems. ICS-209 primarily covers
+significant reported incidents rather than every wildfire. FIRMS activity is
+affected by satellite overpass timing, cloud cover, and sensor properties;
+gridMET describes gridded rather than on-scene weather; and LANDFIRE provides
+landscape-scale context. Personnel and cost fields record reported operational
+responses and should not be interpreted as uniquely optimal decisions.
 
-This benchmark is for research, education, retrospective analysis, and method comparison. It is **not** a real-time decision-support product and must not replace incident commanders, fire-behavior analysts, dispatch systems, local observations, or agency procedures.
+The benchmark is intended for research, education, retrospective analysis,
+and reproducible comparison. Predictions must not replace incident commanders,
+dispatch systems, local observations, agency procedures, or expert judgment.
 
-## Integrity, citation, and license
+## Citation
 
-From the repository root, verify release files with:
-
-```bash
-shasum -a 256 -c metadata/checksums.sha256
-```
-
-When using FireRespBench, cite the accompanying FireRespBench paper or repository release and acknowledge the upstream datasets listed above. The original FireRespBench curation, labels, prompt templates, and documentation are provided under the terms in `LICENSE.md`; upstream data remain subject to their respective attribution and use guidance.
+If you use FireResBench, cite the accompanying paper and acknowledge the
+upstream datasets listed above. A release-specific BibTeX entry and archival
+identifier will be added when the benchmark publication record is available.
