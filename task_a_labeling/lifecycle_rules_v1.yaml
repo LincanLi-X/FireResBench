@@ -1,0 +1,88 @@
+{
+  "rule_version": "task-a-stage1-v1.0.0",
+  "review_sampling_seed": 2027,
+  "review_audit_fraction": 0.10,
+  "date_range": {
+    "start": "2017-01-01",
+    "end": "2020-12-31"
+  },
+  "labels": [
+    "initial_attack",
+    "rapid_escalation",
+    "extended_attack",
+    "containment",
+    "mop_up_monitoring"
+  ],
+  "temporal_order": {
+    "initial_attack": 0,
+    "rapid_escalation": 1,
+    "extended_attack": 2,
+    "containment": 3,
+    "mop_up_monitoring": 4
+  },
+  "rule_priority": [
+    "mop_up_monitoring",
+    "containment",
+    "rapid_escalation",
+    "initial_attack",
+    "extended_attack"
+  ],
+  "thresholds": {
+    "early_age_days": 3,
+    "late_stage_age_days": 7,
+    "small_fire_acres": 1000,
+    "meaningful_new_acres": 25,
+    "rapid_new_acres": 500,
+    "extreme_new_acres": 2000,
+    "rapid_growth_ratio": 0.20,
+    "high_containment_pct": 80,
+    "near_full_containment_pct": 95,
+    "containment_gain_pct": 20,
+    "low_firms_count": 1,
+    "active_firms_count": 10,
+    "intense_firms_count": 30,
+    "low_firms_frp_sum": 5,
+    "active_firms_frp_sum": 100,
+    "intense_firms_frp_sum": 500,
+    "personnel_surge_abs": 25,
+    "personnel_surge_ratio": 0.50,
+    "personnel_drawdown_abs": -15,
+    "personnel_drawdown_ratio": -0.20,
+    "low_personnel": 20,
+    "high_daily_cost_usd": 250000,
+    "high_cost_increment_usd": 250000,
+    "high_wf_fsr": 0.20,
+    "max_personnel": 10000,
+    "max_daily_cost_usd": 50000000,
+    "firms_radius_km": 5.0
+  },
+  "confidence": {
+    "initial_attack": 0.82,
+    "extended_attack": 0.68,
+    "mop_up_monitoring": 0.90,
+    "rapid_escalation_one_signal": 0.81,
+    "rapid_escalation_two_signals": 0.86,
+    "rapid_escalation_three_plus_signals": 0.91,
+    "containment_one_condition": 0.82,
+    "containment_two_conditions": 0.86,
+    "smoothed_forward_cap": 0.65,
+    "backward_held_cap": 0.60,
+    "confirmed_re_escalation_floor": 0.80
+  },
+  "behavior_vocabulary": {
+    "crowning": ["crown"],
+    "extreme": ["extreme"],
+    "running": ["running", " runs", "run "],
+    "spotting": ["spotting"],
+    "torching": ["torching"],
+    "wind_driven": ["wind driven", "wind-driven"]
+  },
+  "conus_states": [
+    "AL", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA",
+    "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA",
+    "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM",
+    "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD",
+    "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
+  ]
+}
+
