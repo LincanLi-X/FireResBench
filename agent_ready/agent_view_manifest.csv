@@ -1,5 +1,0 @@
-view_file,rows,columns,unique_incidents,contains_ground_truth_labels,path,description
-geo_agent_view.csv,33303,48,5728,False,agent_ready/geo_agent_view.csv,"Geographic, jurisdictional, coordinate, terrain, fuel, and LANDFIRE context."
-fire_behavior_agent_view.csv,33303,83,5728,False,agent_ready/fire_behavior_agent_view.csv,"Fire activity, growth, containment, FIRMS, gridMET, and rolling fire-behavior context."
-resource_history_agent_view.csv,33303,54,5728,False,agent_ready/resource_history_agent_view.csv,"Personnel, cost, command, suppression, closure, evacuation, and impact history."
-critic_agent_view.csv,33303,216,5728,True,agent_ready/critic_agent_view.csv,"Complete evaluation view with model inputs, targets, and eligibility flags."
