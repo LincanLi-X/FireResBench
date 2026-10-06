@@ -229,8 +229,8 @@ automatic prelabels, expert-review queue, review-case index, and blank expert
 review template. Source details are documented in
 `task_a_labeling/DATA_SOURCES.md`.
 
-Task A Stage 2 does not generate expert opinions. It validates and combines two
-independent reviewer files, the required row-level adjudications, and any
+Task A Stage 2 validates and combines the files and annotations from two
+independent reviewer teams, the required row-level adjudications, and any
 sequence-adjudication decisions. Place the completed human-review files under
 `task_a_labeling/expert_review/`, or pass their locations explicitly. An initial
 integration pass that writes the candidate labels and sequence-anomaly queue is:
@@ -299,8 +299,6 @@ data from `FireAgentBench`.
   variable from model inputs.
 - Evaluate Task B personnel and cost on their respective eligible subsets; the
   two subsets need not contain the same Fire-Days.
-- Treat missing evidence as missing. Do not convert failed source alignment or
-  unavailable observations into observed zeros.
 - Report the evaluated Fire-Day and incident counts with every result.
 
 ## Provenance and quality assurance
