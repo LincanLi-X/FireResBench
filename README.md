@@ -301,25 +301,6 @@ data from `FireAgentBench`.
   two subsets need not contain the same Fire-Days.
 - Report the evaluated Fire-Day and incident counts with every result.
 
-## Provenance and quality assurance
-
-Task A retains source-report identifiers, same-day conflict information,
-activated lifecycle rules, evidence signals, review-routing reasons, reviewer
-actions, adjudication records, sequence-review outcomes, and supervised
-evaluation eligibility. Task B retains source-report identifiers, same-day
-collapse status, target endpoint references, cost provenance, target-status
-fields, feature metadata, and incident-level split assignments.
-
-The builders apply deterministic validation while constructing their outputs.
-Task A checks unique Fire-Day keys, legal lifecycle states, reviewer and
-adjudicator coverage, reviewer independence, and lifecycle-sequence
-consistency. Task B checks unique keys, feature-target alignment, strict
-next-day eligibility, personnel and cost ranges, incident split coverage, and
-future-derived feature leakage.
-
-Task B cumulative-cost targets use values restored from the official
-as-reported ICS-209 archive. Cleaned or repaired cumulative costs are not used
-as released target endpoints.
 
 ## Limitations and responsible use
 
