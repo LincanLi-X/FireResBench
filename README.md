@@ -17,43 +17,43 @@ NOTE: This benchmark should not be treated as a real-time wildfire incident-comm
 
 ### *Source cohort and coverage*
 
-| Statistic               |                        Value |
-| ----------------------- | ---------------------------: |
-| Temporal coverage       |          Jan. 2017–Dec. 2020 |
-| Spatial coverage        | CONUS; 48 states represented |
-| Source-cohort Fire-Days |                       36,061 |
+| Statistic | Value |
+|---|---:|
+| Temporal coverage | Jan. 2017–Dec. 2020 |
+| Spatial coverage | CONUS; 48 states represented |
+| Source-cohort Fire-Days | 36,061 |
 
 ### *Model-ready dataset*
 
-| Statistic                |  Value |
-| ------------------------ | -----: |
-| Fire-Day instances       | 33,303 |
-| Unique incidents         |  5,728 |
-| Data and metadata fields |    216 |
+| Statistic | Value |
+|---|---:|
+| Fire-Day instances | 33,303 |
+| Unique incidents | 5,728 |
+| Data and metadata fields | 216 |
 
 ### *Task A lifecycle-label distribution*
 
-| Lifecycle state   | Share of labeled Fire-Days |
-| ----------------- | -------------------------: |
-| Initial attack    |                     14.24% |
-| Rapid escalation  |                     22.13% |
-| Extended attack   |                     24.47% |
-| Containment       |                     21.72% |
-| Mop-up/monitoring |                     17.44% |
+| Lifecycle state | Share of labeled Fire-Days |
+|---|---:|
+| Initial attack | 14.24% |
+| Rapid escalation | 22.13% |
+| Extended attack | 24.47% |
+| Containment | 21.72% |
+| Mop-up/monitoring | 17.44% |
 
 ### *Task B target distribution*
 
-| Target             | Median |   P90 |   P99 |
-| ------------------ | -----: | ----: | ----: |
-| Next-day personnel |     57 |   306 |     — |
-| Daily cost (USD)   |  $100K | $1.1M | $5.2M |
+| Target | Median | P90 | P99 |
+|---|---:|---:|---:|
+| Next-day personnel | 57 | 306 | — |
+| Daily cost (USD) | $100K | $1.1M | $5.2M |
 
 ### *Incident history length*
 
-| Statistic                             | Median |  P75 | Maximum |
-| ------------------------------------- | -----: | ---: | ------: |
-| Fire-Days per incident                |      4 |    7 |     117 |
-
+| Statistic | Median | P75 | Maximum |
+|---|---:|---:|---:|
+| Fire-Days per incident | 4 | 7 | 117 |
+The fundamental sample is a Fire-Day:
 
 ```text
 Fire-Day = (incident_id, fire_day_date)
@@ -68,12 +68,12 @@ Fire-Day and information observed on earlier Fire-Days from the same incident.
 
 FireResBench integrates four public data-source families into a unified Fire-Day representation. ICS-209-PLUS provides the raw incident-level wildfire situation reports (which can be used to extract operational-response history). NASA FIRMS supplies date-aligned observations of active-fire activity. gridMET and LANDFIRE contribute meteorological and landscape covariates, respectively. For supervision construction, Task A uses evidence from ICS-209-PLUS and FIRMS, whereas the targets in Task B are derived from consecutive ICS-209 reports. gridMET and LANDFIRE are used as data features and do not define Task A labels or Task B targets.
 
-| Source       | Information used                                             | Role in FireResBench                                         |
-| ------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Source | Information used | Role in FireResBench |
+|---|---|---|
 | ICS-209-PLUS | Incident identifiers and timestamps; reported area, containment, fire behavior, impacts, personnel, and cumulative incident cost | Provides the incident-centered Fire-Day timeline, current and historical operational evidence, evidence for Task A lifecycle supervision, and the sole source of Task B next-day personnel and daily-cost targets |
-| NASA FIRMS   | Date-aligned VIIRS active-fire detections, detection counts, confidence, and fire radiative power within incident-centered spatial buffers | Provides satellite evidence of current fire activity for model inputs and Task A lifecycle-supervision construction; it does not define Task B targets |
-| gridMET      | Daily fire-danger, wind, temperature, and fuel-moisture variables, together with backward-looking summaries | Provides time-varying meteorological and environmental covariates for model inputs; it is not used to construct lifecycle labels or operational-response targets |
-| LANDFIRE     | Existing vegetation type, vegetation cover, and vegetation height summarized around each incident location | Provides static landscape and vegetation covariates for model inputs; it is not used to construct lifecycle labels or operational-response targets |
+| NASA FIRMS | Date-aligned VIIRS active-fire detections, detection counts, confidence, and fire radiative power within incident-centered spatial buffers | Provides satellite evidence of current fire activity for model inputs and Task A lifecycle-supervision construction; it does not define Task B targets |
+| gridMET | Daily fire-danger, wind, temperature, and fuel-moisture variables, together with backward-looking summaries | Provides time-varying meteorological and environmental covariates for model inputs; it is not used to construct lifecycle labels or operational-response targets |
+| LANDFIRE | Existing vegetation type, vegetation cover, and vegetation height summarized around each incident location | Provides static landscape and vegetation covariates for model inputs; it is not used to construct lifecycle labels or operational-response targets |
 
 
 
@@ -204,75 +204,139 @@ prediction features.
 
 ## Rebuilding and verification
 
-Run commands from the project root.
+Run the following commands from the repository root, the directory containing
+`task_a_labeling/` and `task_b_labeling/`.
 
 ### Task A automatic pre-annotation artifacts
 
+Task A Stage 1 reads the ICS-209-PLUS SitRep table and annual 2017--2020 FIRMS
+VIIRS files from the surrounding workspace. Build into a staging directory so
+that existing release artifacts are not overwritten before inspection:
+
 ```bash
-python FireResBench/task_a_labeling/build_task_a_stage1.py
-python -m unittest discover -s FireResBench/task_a_labeling/tests -v
-(cd FireResBench/task_a_labeling && \
-  shasum -a 256 -c metadata/checksums.sha256)
+python task_a_labeling/build_task_a_stage1.py \
+  --ics ../ics209plus-wildfire/ics209-plus-wf_sitreps_1999to2020.csv \
+  --firms-dir ../FIRMS \
+  --guide task_a_labeling/docs/FireResBench_TaskA_Labeling_Guide.md \
+  --config task_a_labeling/lifecycle_rules_v1.yaml \
+  --output-root build/task_a_labeling
 ```
 
-The default build expects the ICS-209-PLUS SitRep table, annual 2017--2020
-FIRMS VIIRS files, and the frozen labeling guide at the paths documented in
-`task_a_labeling/README.md` and `task_a_labeling/DATA_SOURCES.md`.
+The builder performs same-day report collapse, FIRMS alignment, backward-looking
+feature construction, deterministic lifecycle pre-annotation, temporal checks,
+and review routing. Its principal outputs are the Fire-Day feature table,
+automatic prelabels, expert-review queue, review-case index, and blank expert
+review template. Source details are documented in
+`task_a_labeling/DATA_SOURCES.md`.
+
+Task A Stage 2 does not generate expert opinions. It validates and combines two
+independent reviewer files, the required row-level adjudications, and any
+sequence-adjudication decisions. Place the completed human-review files under
+`task_a_labeling/expert_review/`, or pass their locations explicitly. An initial
+integration pass that writes the candidate labels and sequence-anomaly queue is:
+
+```bash
+python task_a_labeling/build_task_a_stage2.py \
+  --prelabels build/task_a_labeling/labels/automatic_prelabels.csv \
+  --review-queue build/task_a_labeling/labels/expert_review_queue.csv \
+  --reviewer-a task_a_labeling/expert_review/reviewer_a_decisions.csv \
+  --reviewer-b task_a_labeling/expert_review/reviewer_b_decisions.csv \
+  --adjudicator task_a_labeling/expert_review/adjudicator_decisions.csv \
+  --output build/task_a_labeling/labels/final_expert_labels.csv \
+  --sequence-anomalies build/task_a_labeling/expert_review/sequence_anomalies.csv \
+  --skip-sequence-decisions
+```
+
+After experts complete the sequence decisions, rerun the Stage 2 command with
+`--sequence-decisions` pointing to the completed decision file and without
+`--skip-sequence-decisions`. If the first sequence pass creates new anomalies,
+the script supports a second expert sequence-review round. The integration
+fails rather than silently continuing when reviewer coverage, reviewer
+independence, adjudication coverage, label semantics, or sequence consistency
+is invalid.
 
 ### Task B
 
+Task B is rebuilt by the self-contained repository script:
+
 ```bash
-python FireResBench/task_b_labeling/build_task_b_2017to2020.py
-python -m unittest discover -s FireResBench/task_b_labeling/tests -v
-(cd FireResBench/task_b_labeling && \
-  shasum -a 256 -c metadata/checksums.sha256)
+python task_b_labeling/build_task_b_2017to2020.py \
+  --cleaned-sitreps ../ics209plus-wildfire/ics209-plus-wf_sitreps_1999to2020.csv \
+  --aligned-features ../processed/processed_fire_day_features_2017to2020.csv \
+  --rules task_b_labeling/task_b_target_rules_v1.yaml \
+  --raw-snapshot task_b_labeling/source/ics209_as_reported_report_fields_2017to2020.csv
 ```
 
-By default, Task B uses the included compact snapshot of as-reported ICS-209
-fields. It can also regenerate that snapshot from the official ICS-209 source
-archive described in `task_b_labeling/DATA_SOURCES.md`.
+The builder restores as-reported ICS-209 cost and area fields, collapses
+same-day reports, derives backward-looking features, constructs strict
+next-calendar-day personnel and cost targets, creates incident-disjoint splits,
+and validates key coverage, target eligibility, date range, and feature
+leakage. It writes only these core artifacts:
 
-The current full-range Task B builder retains a compatibility dependency on
-the audited core in `FireAgentBench/TaskB-2020/build_task_b_2020.py` and the
-frozen aligned Fire-Day table under `FireAgentBench/processed/`. These
-dependencies must remain available when rebuilding this repository snapshot.
+- `processed/fire_res_bench_task_b_features_2017to2020.csv`;
+- `labels/task_b_targets_2017to2020.csv`;
+- `metadata/task_b_feature_allowlist.json`;
+- `metadata/incident_disjoint_splits.csv`.
+
+The included compact ICS-209 snapshot supplies the as-reported fields required
+for target construction. Its relationship to the official archive is described
+in `task_b_labeling/DATA_SOURCES.md`. The Task B builder does not import code or
+data from `FireAgentBench`.
 
 ## Evaluation and leakage prevention
 
 - Split data by `incident_id`, never by individual Fire-Days. Different days
   from one incident must not appear in both training and evaluation sets.
-- The released Task B split uses a deterministic 80%/10%/10%
-  train/validation/test partition with seed 2027.
-- Construct temporal inputs only after sorting within each incident. All
-  lagged and rolling windows must end no later than the prediction Fire-Day.
-- Exclude next-day targets, final incident outcomes, label-construction fields,
-  expert-review metadata, eligibility flags, and all future-derived variables
-  from model inputs.
-- Treat missing evidence as missing. Do not silently convert failed source
-  alignment or unavailable observations into observed zeros.
-- Report task-specific sample counts together with evaluation results.
+- The Task B split uses a deterministic 80%/10%/10% train/validation/test
+  partition with seed 2027.
+- Sort records within each incident before constructing temporal inputs. Every
+  lagged or rolling feature must end no later than the prediction Fire-Day.
+- Select model inputs from the task-specific feature allowlist. Treat incident
+  and report identifiers, names, source-row references, and review fields as
+  metadata rather than predictive inputs.
+- Exclude next-day targets, final incident outcomes, lifecycle-construction
+  fields, expert-review records, eligibility flags, and every future-derived
+  variable from model inputs.
+- Evaluate Task B personnel and cost on their respective eligible subsets; the
+  two subsets need not contain the same Fire-Days.
+- Treat missing evidence as missing. Do not convert failed source alignment or
+  unavailable observations into observed zeros.
+- Report the evaluated Fire-Day and incident counts with every result.
 
 ## Provenance and quality assurance
 
-FireResBench retains source-report identifiers, same-day collapse decisions,
-field-level status, anomaly records, feature allowlists, data dictionaries,
-construction versions, input hashes, and output checksums. Automated tests
-cover lifecycle-rule behavior, temporal constraints, target semantics,
-incident-disjoint splitting, and key leakage controls.
+Task A retains source-report identifiers, same-day conflict information,
+activated lifecycle rules, evidence signals, review-routing reasons, reviewer
+actions, adjudication records, sequence-review outcomes, and supervised
+evaluation eligibility. Task B retains source-report identifiers, same-day
+collapse status, target endpoint references, cost provenance, target-status
+fields, feature metadata, and incident-level split assignments.
 
-The Task B release restores cumulative cost directly from the official
-as-reported ICS-209 archive. Cleaned or repaired cost values are retained only
-for provenance comparison and do not serve as released target endpoints.
+The builders apply deterministic validation while constructing their outputs.
+Task A checks unique Fire-Day keys, legal lifecycle states, reviewer and
+adjudicator coverage, reviewer independence, and lifecycle-sequence
+consistency. Task B checks unique keys, feature-target alignment, strict
+next-day eligibility, personnel and cost ranges, incident split coverage, and
+future-derived feature leakage.
+
+Task B cumulative-cost targets use values restored from the official
+as-reported ICS-209 archive. Cleaned or repaired cumulative costs are not used
+as released target endpoints.
 
 ## Limitations and responsible use
 
-FireResBench inherits reporting gaps, corrections, spatial uncertainty, and
-institutional biases from its source systems. ICS-209 primarily covers
-significant reported incidents rather than every wildfire. FIRMS activity is
-affected by satellite overpass timing, cloud cover, and sensor properties;
-gridMET describes gridded rather than on-scene weather; and LANDFIRE provides
-landscape-scale context. Personnel and cost fields record reported operational
-responses and should not be interpreted as uniquely optimal decisions.
+FireResBench inherits reporting gaps, retrospective corrections, spatial
+uncertainty, and institutional biases from its source systems. ICS-209 mainly
+covers significant reported incidents rather than every wildfire. FIRMS
+activity depends on satellite overpass timing, cloud cover, and sensor
+properties. gridMET provides gridded conditions rather than on-scene weather,
+and LANDFIRE supplies landscape-scale summaries rather than incident-specific
+field observations.
+
+Task A lifecycle states are expert-reviewed operational abstractions rather
+than directly observed physical states. Task B personnel and cost targets
+describe reported responses under historical constraints and should not be
+interpreted as uniquely optimal decisions or prescriptive resource plans.
 
 The benchmark is intended for research, education, retrospective analysis,
 and reproducible comparison. Predictions must not replace incident commanders,
@@ -280,6 +344,12 @@ dispatch systems, local observations, agency procedures, or expert judgment.
 
 ## Citation
 
-If you use FireResBench, cite the accompanying paper and acknowledge the
-upstream datasets listed above. A release-specific BibTeX entry and archival
-identifier will be added when the benchmark publication record is available.
+If you find FireResBench useful, please consider citing our work:
+```
+@inproceedings{anonymous2026dimebench,
+  title     = {FireResBench: An Event-Centered Benchmark for Wildfire Lifecycle Understanding and Operational-Response Forecasting},
+  author    = {Anonymous Authors},
+  booktitle = {Under Review},
+  year      = {2026}
+}
+```
