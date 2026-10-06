@@ -1,0 +1,11 @@
+target,status,count
+daily_cost_usd,eligible_valid_1d,21117
+daily_cost_usd,excluded_cost_above_maximum,24
+daily_cost_usd,excluded_missing_current_cost,15
+daily_cost_usd,excluded_missing_target_cost,12
+daily_cost_usd,excluded_negative_cost_revision,1308
+daily_cost_usd,excluded_no_next_fire_day,5728
+daily_cost_usd,excluded_nonconsecutive_report,5099
+next_day_personnel,eligible,22476
+next_day_personnel,excluded_no_next_fire_day,5728
+next_day_personnel,excluded_nonconsecutive_report,5099
