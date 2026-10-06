@@ -17,42 +17,42 @@ NOTE: This benchmark should not be treated as a real-time wildfire incident-comm
 
 ### *Source cohort and coverage*
 
-| Statistic | Value |
-|---|---:|
-| Temporal coverage | Jan. 2017–Dec. 2020 |
-| Spatial coverage | CONUS; 48 states represented |
-| Source-cohort Fire-Days | 36,061 |
+| Statistic               |                        Value |
+| ----------------------- | ---------------------------: |
+| Temporal coverage       |          Jan. 2017–Dec. 2020 |
+| Spatial coverage        | CONUS; 48 states represented |
+| Source-cohort Fire-Days |                       36,061 |
 
 ### *Model-ready dataset*
 
-| Statistic | Value |
-|---|---:|
-| Fire-Day instances | 33,303 |
-| Unique incidents | 5,728 |
-| Data and metadata fields | 216 |
+| Statistic                |  Value |
+| ------------------------ | -----: |
+| Fire-Day instances       | 33,303 |
+| Unique incidents         |  5,728 |
+| Data and metadata fields |    216 |
 
 ### *Task A lifecycle-label distribution*
 
-| Lifecycle state | Share of labeled Fire-Days |
-|---|---:|
-| Initial attack | 14.24% |
-| Rapid escalation | 22.13% |
-| Extended attack | 24.47% |
-| Containment | 21.72% |
-| Mop-up/monitoring | 17.44% |
+| Lifecycle state   | Share of labeled Fire-Days |
+| ----------------- | -------------------------: |
+| Initial attack    |                     14.24% |
+| Rapid escalation  |                     22.13% |
+| Extended attack   |                     24.47% |
+| Containment       |                     21.72% |
+| Mop-up/monitoring |                     17.44% |
 
 ### *Task B target distribution*
 
-| Target | Median | P90 | P99 |
-|---|---:|---:|---:|
-| Next-day personnel | 57 | 306 | — |
-| Daily cost (USD) | $100K | $1.1M | $5.2M |
+| Target             | Median |   P90 |   P99 |
+| ------------------ | -----: | ----: | ----: |
+| Next-day personnel |     57 |   306 |     — |
+| Daily cost (USD)   |  $100K | $1.1M | $5.2M |
 
 ### *Incident history length*
 
-| Statistic | Median | P75 | Maximum |
-|---|---:|---:|---:|
-| Fire-Days per incident | 4 | 7 | 117 |
+| Statistic              | Median |  P75 | Maximum |
+| ---------------------- | -----: | ---: | ------: |
+| Fire-Days per incident |      4 |    7 |     117 |
 
 ```text
 Fire-Day = (incident_id, fire_day_date)
@@ -67,12 +67,12 @@ Fire-Day and information observed on earlier Fire-Days from the same incident.
 
 FireResBench integrates four public data-source families into a unified Fire-Day representation. ICS-209-PLUS provides the raw incident-level wildfire situation reports (which can be used to extract operational-response history). NASA FIRMS supplies date-aligned observations of active-fire activity. gridMET and LANDFIRE contribute meteorological and landscape covariates, respectively. For supervision construction, Task A uses evidence from ICS-209-PLUS and FIRMS, whereas the targets in Task B are derived from consecutive ICS-209 reports. gridMET and LANDFIRE are used as data features and do not define Task A labels or Task B targets.
 
-| Source | Information used | Role in FireResBench |
-|---|---|---|
+| Source       | Information used                                             | Role in FireResBench                                         |
+| ------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | ICS-209-PLUS | Incident identifiers and timestamps; reported area, containment, fire behavior, impacts, personnel, and cumulative incident cost | Provides the incident-centered Fire-Day timeline, current and historical operational evidence, evidence for Task A lifecycle supervision, and the sole source of Task B next-day personnel and daily-cost targets |
-| NASA FIRMS | Date-aligned VIIRS active-fire detections, detection counts, confidence, and fire radiative power within incident-centered spatial buffers | Provides satellite evidence of current fire activity for model inputs and Task A lifecycle-supervision construction; it does not define Task B targets |
-| gridMET | Daily fire-danger, wind, temperature, and fuel-moisture variables, together with backward-looking summaries | Provides time-varying meteorological and environmental covariates for model inputs; it is not used to construct lifecycle labels or operational-response targets |
-| LANDFIRE | Existing vegetation type, vegetation cover, and vegetation height summarized around each incident location | Provides static landscape and vegetation covariates for model inputs; it is not used to construct lifecycle labels or operational-response targets |
+| NASA FIRMS   | Date-aligned VIIRS active-fire detections, detection counts, confidence, and fire radiative power within incident-centered spatial buffers | Provides satellite evidence of current fire activity for model inputs and Task A lifecycle-supervision construction; it does not define Task B targets |
+| gridMET      | Daily fire-danger, wind, temperature, and fuel-moisture variables, together with backward-looking summaries | Provides time-varying meteorological and environmental covariates for model inputs; it is not used to construct lifecycle labels or operational-response targets |
+| LANDFIRE     | Existing vegetation type, vegetation cover, and vegetation height summarized around each incident location | Provides static landscape and vegetation covariates for model inputs; it is not used to construct lifecycle labels or operational-response targets |
 
 
 
