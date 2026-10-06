@@ -1,6 +1,5 @@
 {
   "benchmark_name": "FireResBench",
-  "construction_version": "task-b-2017to2020-v1.0.0",
   "excluded_columns": {
     "all target/eligibility fields": "future-derived label leakage",
     "event_final_acres": "final incident outcome",
