@@ -1,4 +1,4 @@
-# FireResBench Task B labeling release (2017--2020)
+# FireResBench Task B labeling release (2017-2020)
 
 This directory contains the full FireResBench Task B construction package for CONUS U.S. from 2017-01-01 to 2020-12-31.
 
