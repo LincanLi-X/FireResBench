@@ -53,7 +53,7 @@ NOTE: This benchmark should not be treated as a real-time wildfire incident-comm
 | Statistic                             | Median |  P75 | Maximum |
 | ------------------------------------- | -----: | ---: | ------: |
 | Fire-Days per incident                |      4 |    7 |     117 |
-| The fundamental sample is a Fire-Day: |        |      |         |
+
 
 ```text
 Fire-Day = (incident_id, fire_day_date)
