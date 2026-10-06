@@ -1,5 +1,4 @@
 {
-  "rule_version": "task-a-stage1-v1.0.0",
   "review_sampling_seed": 2027,
   "review_audit_fraction": 0.10,
   "date_range": {
@@ -85,4 +84,3 @@
     "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
   ]
 }
-

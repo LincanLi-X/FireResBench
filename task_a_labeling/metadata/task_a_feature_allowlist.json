@@ -1,5 +1,4 @@
 {
-  "version": "task-a-feature-allowlist-v1.0.0",
   "key_columns": [
     "incident_id",
     "fire_day_date"

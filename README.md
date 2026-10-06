@@ -53,7 +53,6 @@ NOTE: This benchmark should not be treated as a real-time wildfire incident-comm
 | Statistic | Median | P75 | Maximum |
 |---|---:|---:|---:|
 | Fire-Days per incident | 4 | 7 | 117 |
-The fundamental sample is a Fire-Day:
 
 ```text
 Fire-Day = (incident_id, fire_day_date)
@@ -211,8 +210,6 @@ Run commands from the project root.
 ```bash
 python FireResBench/task_a_labeling/build_task_a_stage1.py
 python -m unittest discover -s FireResBench/task_a_labeling/tests -v
-(cd FireResBench/task_a_labeling && \
-  shasum -a 256 -c metadata/checksums.sha256)
 ```
 
 The default build expects the ICS-209-PLUS SitRep table, annual 2017--2020
@@ -224,8 +221,6 @@ FIRMS VIIRS files, and the frozen labeling guide at the paths documented in
 ```bash
 python FireResBench/task_b_labeling/build_task_b_2017to2020.py
 python -m unittest discover -s FireResBench/task_b_labeling/tests -v
-(cd FireResBench/task_b_labeling && \
-  shasum -a 256 -c metadata/checksums.sha256)
 ```
 
 By default, Task B uses the included compact snapshot of as-reported ICS-209
@@ -256,9 +251,9 @@ dependencies must remain available when rebuilding this repository snapshot.
 
 FireResBench retains source-report identifiers, same-day collapse decisions,
 field-level status, anomaly records, feature allowlists, data dictionaries,
-construction versions, input hashes, and output checksums. Automated tests
-cover lifecycle-rule behavior, temporal constraints, target semantics,
-incident-disjoint splitting, and key leakage controls.
+and documented construction policies. Automated tests cover lifecycle-rule
+behavior, temporal constraints, target semantics, incident-disjoint splitting,
+and key leakage controls.
 
 The Task B release restores cumulative cost directly from the official
 as-reported ICS-209 archive. Cleaned or repaired cost values are retained only

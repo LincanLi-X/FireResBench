@@ -17,12 +17,9 @@ Personnel and cost eligibility are evaluated independently. Negative cost revisi
 - `metadata/incident_disjoint_splits.csv`: deterministic 80/10/10 split at the  incident level (seed 2027);
 - `metadata/data_quality_report.md`: release counts and validation outcomes;
 - `metadata/task_b_data_dictionary.csv`: column-level schema;
-- `metadata/task_b_2017to2020_manifest.json` and
-  `metadata/checksums.sha256`: version, lineage, counts, and file integrity;
 - `source/ics209_as_reported_report_fields_2017to2020.csv`: compact snapshot of  the official raw ICS-209 fields used to restore target endpoints.
 
 
 ## Verification
 
 Model training should join the feature and target tables on `(incident_id, fire_day_date)`, filter by the target-specific eligibility flag, and use only fields listed in the feature allowlist.
-

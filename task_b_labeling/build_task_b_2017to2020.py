@@ -607,7 +607,6 @@ def construct_targets(fire_days: pd.DataFrame, rules: dict) -> pd.DataFrame:
             "same_day_collapse_status": frame["same_day_collapse_status"],
             "current_source_row_ids": frame["source_row_ids"],
             "target_source_row_ids": next_source_rows.where(strict),
-            "construction_version": rules["construction_version"],
         }
     )
     return result
@@ -856,7 +855,6 @@ def main() -> None:
     allowlist = {
         "benchmark_name": rules["benchmark_name"],
         "subset_name": rules["subset_name"],
-        "construction_version": rules["construction_version"],
         "key_columns": ["incident_id", "fire_day_date"],
         "metadata_columns": [
             column for column in features.columns if column not in model_feature_columns

@@ -1,5 +1,5 @@
 field,role,definition,allowed_values_or_format,missing_value_semantics
-final_lifecycle_label,target,Final Task A label after reviewer consensus and any required adjudication,"initial_attack|rapid_escalation|extended_attack|containment|mop_up_monitoring",Blank means the case remains unresolved and is ineligible for supervised evaluation
+final_lifecycle_label,target,Final Task A label after reviewer consensus and any required adjudication,initial_attack|rapid_escalation|extended_attack|containment|mop_up_monitoring,Blank means the case remains unresolved and is ineligible for supervised evaluation
 primary_review_action,review audit,Reviewer A action,accept|correct|defer,Blank means the row was not routed to Stage 2
 primary_review_label,review audit,Reviewer A proposed lifecycle label,Task A label vocabulary,Blank for a Reviewer A defer or a row not routed to Stage 2
 primary_reason_code,review audit,Reviewer A machine-readable decision reason,Reviewer policy vocabulary,Blank when not routed to Stage 2
@@ -23,7 +23,7 @@ adjudication_rationale,review audit,Row-level adjudicator evidence-based explana
 adjudicator_code,provenance,Pseudonymous row-level adjudicator identifier,internal_pilot_adjudicator,Blank when adjudication was not required
 adjudicator_model,provenance,Model used for row-level adjudication,gpt-5.6-sol,Blank when adjudication was not required
 adjudicator_reasoning_effort,provenance,Reasoning effort used for row-level adjudication,high,Blank when adjudication was not required
-final_label_source,provenance,Decision path that supplied the final label,"stage1_not_routed_to_stage2|reviewer_consensus|adjudicator|sequence_adjudicator|sequence_adjudicator_round2|unresolved_defer|unresolved_sequence_defer",Never blank
+final_label_source,provenance,Decision path that supplied the final label,stage1_not_routed_to_stage2|reviewer_consensus|adjudicator|sequence_adjudicator|sequence_adjudicator_round2|unresolved_defer|unresolved_sequence_defer,Never blank
 sequence_review_required,sequence audit,Whether the final full-sequence audit still detects an unsupported transition,0|1,Never blank
 sequence_adjudication_action,sequence audit,Sequence adjudicator action,resolve|defer,Blank when sequence adjudication was not required
 sequence_adjudicated_label,sequence audit,Sequence adjudicator replacement label,Task A label vocabulary,Blank when sequence adjudication was not required or was deferred
@@ -35,5 +35,3 @@ sequence_adjudicator_reasoning_effort,provenance,Reasoning effort used for seque
 supervised_evaluation_eligible,eligibility,Whether this row has a resolved label and passes the final sequence audit,0|1,Never blank
 annotation_source,provenance,Explicit release source,subagent_reviewed_internal_pilot,Never blank
 internal_pilot_flag,provenance,Explicitly identifies this as an internal pilot rather than human expert annotation,1,Never blank
-annotation_version,provenance,Frozen Stage 2 pilot annotation version,task-a-stage2-subagent-internal-pilot-v1.0.0,Never blank
-annotation_timestamp,provenance,Frozen build timestamp,ISO 8601 UTC,Never blank

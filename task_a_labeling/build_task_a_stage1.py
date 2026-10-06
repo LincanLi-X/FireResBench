@@ -168,8 +168,6 @@ AUTOMATIC_COLUMNS = [
     "review_required",
     "review_queue_reason",
     "review_sampling_stratum",
-    "rule_version",
-    "input_data_checksum",
     "labeling_timestamp",
 ]
 
@@ -191,14 +189,6 @@ def read_config(path: Path) -> dict[str, Any]:
     # JSON is valid YAML; using the JSON subset avoids an unnecessary PyYAML
     # dependency and keeps the frozen configuration portable.
     return json.loads(path.read_text(encoding="utf-8"))
-
-
-def sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def stable_json(value: Any) -> str:
@@ -883,7 +873,6 @@ def conflict_reasons(row: pd.Series, evidence: dict[str, Any], raw_label: str, c
 def label_fire_days(
     features: pd.DataFrame,
     config: dict[str, Any],
-    input_checksum: str,
     labeling_timestamp: str,
 ) -> pd.DataFrame:
     records: list[dict[str, Any]] = []
@@ -937,8 +926,6 @@ def label_fire_days(
             "review_required": 0,
             "review_queue_reason": "",
             "review_sampling_stratum": "",
-            "rule_version": config["rule_version"],
-            "input_data_checksum": input_checksum,
             "labeling_timestamp": labeling_timestamp,
         }
         records.append(record)
@@ -1151,8 +1138,6 @@ def validate_outputs(features: pd.DataFrame, labels: pd.DataFrame, config: dict[
         "negative_cost_revision_alone_triggered_resource_surge": int(negative_cost_surge.sum()),
         "unobserved_firms_silently_encoded_as_zero": unobserved_firms_as_zero,
         "future_derived_columns_in_feature_table": future_derived_columns,
-        "rule_version_present_on_all_rows": bool(labels["rule_version"].ne("").all()),
-        "input_checksum_present_on_all_rows": bool(labels["input_data_checksum"].ne("").all()),
     }
     if checks["negative_cost_revision_alone_triggered_resource_surge"]:
         raise RuntimeError("A negative cost revision incorrectly triggered resource surge")
@@ -1160,8 +1145,6 @@ def validate_outputs(features: pd.DataFrame, labels: pd.DataFrame, config: dict[
         raise RuntimeError("Unavailable FIRMS evidence was silently encoded as zero")
     if future_derived_columns:
         raise RuntimeError(f"Future-derived columns entered the feature table: {future_derived_columns}")
-    if not checks["rule_version_present_on_all_rows"] or not checks["input_checksum_present_on_all_rows"]:
-        raise RuntimeError("Rule version or input checksum is missing from automatic labels")
     return anomaly_df, checks
 
 
@@ -1275,8 +1258,6 @@ def data_dictionary(features: pd.DataFrame, labels: pd.DataFrame) -> pd.DataFram
             "missing_core_fields",
             "conflicting_evidence",
             "conflict_reasons",
-            "rule_version",
-            "input_data_checksum",
             "labeling_timestamp",
         }:
             role = "annotation audit metadata"
@@ -1409,7 +1390,6 @@ def write_quality_report(
 def file_row(path: Path, project_root: Path, role: str) -> dict[str, Any]:
     return {
         "path": path.resolve().relative_to(project_root.resolve()).as_posix(),
-        "sha256": sha256_file(path),
         "bytes": path.stat().st_size,
         "role": role,
     }
@@ -1450,10 +1430,9 @@ def main() -> None:
     features = features.sort_values(["incident_id", "fire_day_date"], kind="mergesort").reset_index(drop=True)
     feature_path = output_root / "processed" / "fire_day_features_2017to2020.csv"
     features.to_csv(feature_path, index=False, na_rep="")
-    input_checksum = sha256_file(feature_path)
 
     print("[5/7] Applying frozen lifecycle rules and temporal constraints", flush=True)
-    labels = label_fire_days(features, config, input_checksum, labeling_timestamp)
+    labels = label_fire_days(features, config, labeling_timestamp)
     labels = add_review_routing(features, labels, config)
     transition_anomalies, hard_checks = validate_outputs(features, labels, config)
 
@@ -1520,7 +1499,7 @@ def main() -> None:
     template_path = output_root / "labels" / "expert_review_template.csv"
     template.to_csv(template_path, index=False, na_rep="")
 
-    print("[6/7] Writing audits, statistics, and manifests", flush=True)
+    print("[6/7] Writing audits and statistics", flush=True)
     metadata = output_root / "metadata"
     exclusions.to_csv(metadata / "candidate_cohort_exclusions.csv", index=False, na_rep="")
     same_day_conflicts.to_csv(metadata / "same_day_report_conflicts.csv", index=False, na_rep="")
@@ -1592,79 +1571,6 @@ def main() -> None:
     source_rows.append(file_row(args.guide.resolve(), PROJECT_ROOT, "Frozen Task A labeling guide"))
     source_rows.append(file_row(args.config.resolve(), PROJECT_ROOT, "Frozen Stage 1 rule configuration"))
     pd.DataFrame(source_rows).to_csv(metadata / "source_file_manifest.csv", index=False)
-
-    output_files = [
-        feature_path,
-        automatic_path,
-        review_path,
-        review_case_index_path,
-        template_path,
-        metadata / "candidate_cohort_exclusions.csv",
-        metadata / "same_day_report_conflicts.csv",
-        metadata / "transition_anomalies.csv",
-        metadata / "task_a_data_dictionary.csv",
-        metadata / "task_a_feature_allowlist.json",
-        metadata / "annotation_statistics.json",
-        metadata / "runtime_environment.json",
-        metadata / "data_quality_report.md",
-        metadata / "source_file_manifest.csv",
-        output_root / "docs" / args.guide.name,
-    ]
-    manifest = {
-        "benchmark_name": "FireResBench",
-        "task": "Task A",
-        "construction_version": config["rule_version"],
-        "annotation_stage": "Stage 1 provisional annotations; no expert or final labels",
-        "labeling_timestamp": labeling_timestamp,
-        "date_range": {"start": start_date, "end": end_date},
-        "date_policy": "calendar date of ICS-209-PLUS REPORT_TO_DATE; no UTC conversion",
-        "same_day_policy": "fieldwise latest valid value ordered by REPORT_TO_DATE, REPORT_FROM_DATE, and source row id",
-        "firms_policy": "same acq_date; all VIIRS detections within haversine distance <= 5 km",
-        "excluded_sources": ["gridMET", "LANDFIRE"],
-        "review_sampling_seed": config["review_sampling_seed"],
-        "review_audit_fraction": config["review_audit_fraction"],
-        "counts": {
-            "fire_days": int(len(features)),
-            "incidents": int(features["incident_id"].nunique()),
-            "stage1_eligible": int(labels["stage1_eligible"].sum()),
-            "review_queue_rows": int(labels["review_required"].sum()),
-        },
-        "input_hashes": {row["path"]: row["sha256"] for row in source_rows},
-        "implementation_hashes": {
-            "FireResBench/task_a_labeling/build_task_a_stage1.py": sha256_file(SCRIPT_PATH),
-            "FireResBench/task_a_labeling/tests/test_lifecycle_rules.py": sha256_file(
-                output_root / "tests" / "test_lifecycle_rules.py"
-            ),
-        },
-        "output_hashes": {
-            path.resolve().relative_to(PROJECT_ROOT.resolve()).as_posix(): sha256_file(path)
-            for path in output_files
-        },
-        "rebuild_command": (
-            "python FireResBench/task_a_labeling/build_task_a_stage1.py "
-            f"--labeling-timestamp {labeling_timestamp}"
-        ),
-        "hard_checks": hard_checks,
-    }
-    manifest_path = metadata / "annotation_manifest.json"
-    manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-
-    checksum_candidates = [
-        output_root / "README.md",
-        output_root / "DATA_SOURCES.md",
-        output_root / "requirements.txt",
-        output_root / "lifecycle_rules_v1.yaml",
-        output_root / "build_task_a_stage1.py",
-        output_root / "tests" / "test_lifecycle_rules.py",
-        *output_files,
-        manifest_path,
-    ]
-    checksum_lines = []
-    for path in checksum_candidates:
-        if path.exists():
-            relative = path.resolve().relative_to(output_root).as_posix()
-            checksum_lines.append(f"{sha256_file(path)}  {relative}")
-    (metadata / "checksums.sha256").write_text("\n".join(checksum_lines) + "\n", encoding="utf-8")
 
     print("[7/7] Build complete", flush=True)
     print(f"Fire-Days: {len(features):,}")

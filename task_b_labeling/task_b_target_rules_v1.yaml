@@ -1,7 +1,6 @@
 {
   "benchmark_name": "FireResBench",
   "subset_name": "TaskB-2017to2020",
-  "construction_version": "task-b-2017to2020-v1.0.0",
   "date_range": {
     "start": "2017-01-01",
     "end": "2020-12-31"
