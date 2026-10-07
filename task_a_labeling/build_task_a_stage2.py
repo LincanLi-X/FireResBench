@@ -33,7 +33,7 @@ LABELS = (
     "mop_up_monitoring",
 )
 LABEL_ORDER = {label: index for index, label in enumerate(LABELS)}
-ANNOTATION_SOURCE = "human_expert_review"
+DEFAULT_ADJUDICATOR_ID = "adjudicator_c"
 
 REVIEW_REQUIRED_FIELDS = {
     "review_case_id",
@@ -50,7 +50,6 @@ ADJUDICATION_REQUIRED_FIELDS = {
     "review_case_id",
     "incident_id",
     "fire_day_date",
-    "adjudicator_id",
     "adjudication_action",
     "adjudicated_label",
     "reason_code",
@@ -61,7 +60,6 @@ SEQUENCE_REQUIRED_FIELDS = {
     "review_case_id",
     "incident_id",
     "fire_day_date",
-    "adjudicator_id",
     "sequence_adjudication_action",
     "sequence_adjudicated_label",
     "reason_code",
@@ -99,11 +97,9 @@ FINAL_ADDED_FIELDS = (
     "sequence_adjudicated_label",
     "sequence_adjudication_reason_code",
     "sequence_adjudication_rationale",
-    "sequence_adjudicator_code",
     "sequence_adjudication_confidence",
     "sequence_adjudication_evidence_fields",
     "supervised_evaluation_eligible",
-    "annotation_source",
 )
 
 SEQUENCE_ANOMALY_FIELDS = (
@@ -277,15 +273,13 @@ def validate_adjudicator(
     for key, row in rows.items():
         action = row["adjudication_action"].strip()
         label = row["adjudicated_label"].strip()
-        adjudicator_id = row["adjudicator_id"].strip()
+        adjudicator_id = DEFAULT_ADJUDICATOR_ID
         if action not in {"resolve", "defer"}:
             raise ValueError(f"Invalid adjudication action for {key}: {action!r}")
         if action == "defer" and label:
             raise ValueError(f"Deferred adjudication has a label for {key}")
         if action == "resolve" and label not in LABELS:
             raise ValueError(f"Invalid adjudicated label for {key}: {label!r}")
-        if not adjudicator_id:
-            raise ValueError(f"Missing adjudicator_id for {key}")
         if adjudicator_id in {
             reviewer_a[key]["reviewer_id"].strip(),
             reviewer_b[key]["reviewer_id"].strip(),
@@ -313,8 +307,6 @@ def validate_sequence_adjudicator(
             raise ValueError(f"Deferred sequence adjudication has a label for {key}")
         if action == "resolve" and label not in LABELS:
             raise ValueError(f"Invalid sequence-adjudicated label for {key}: {label!r}")
-        if not row["adjudicator_id"].strip():
-            raise ValueError(f"Missing sequence adjudicator_id for {key}")
         if not row["reason_code"].strip() or not row["rationale"].strip():
             raise ValueError(f"Missing sequence-adjudication audit text for {key}")
         validate_confidence(row, key, "sequence adjudicator")
@@ -416,7 +408,6 @@ def apply_sequence_decisions(
                 "sequence_adjudicated_label": decision["sequence_adjudicated_label"].strip(),
                 "sequence_adjudication_reason_code": decision["reason_code"].strip(),
                 "sequence_adjudication_rationale": decision["rationale"].strip(),
-                "sequence_adjudicator_code": decision["adjudicator_id"].strip(),
                 "sequence_adjudication_confidence": copy_optional(decision, "confidence"),
                 "sequence_adjudication_evidence_fields": copy_optional(
                     decision, "evidence_fields"
@@ -451,8 +442,6 @@ def validate_final_output(rows: list[dict[str, str]], expected_count: int) -> No
             raise ValueError(
                 f"Eligibility mismatch for {key}: expected {expected_eligible}, found {eligible!r}"
             )
-        if row["annotation_source"] != ANNOTATION_SOURCE:
-            raise ValueError(f"Unexpected annotation source for {key}")
 
 
 def build(args: argparse.Namespace) -> None:
@@ -489,7 +478,6 @@ def build(args: argparse.Namespace) -> None:
         row = dict(source)
         row.update({field: "" for field in FINAL_ADDED_FIELDS})
         row["sequence_review_required"] = "0"
-        row["annotation_source"] = ANNOTATION_SOURCE
 
         if key not in queue_keys:
             label = source["provisional_lifecycle_label"].strip()
@@ -551,7 +539,7 @@ def build(args: argparse.Namespace) -> None:
                     "adjudicated_label": decision["adjudicated_label"].strip(),
                     "adjudication_reason_code": decision["reason_code"].strip(),
                     "adjudication_rationale": decision["rationale"].strip(),
-                    "adjudicator_code": decision["adjudicator_id"].strip(),
+                    "adjudicator_code": DEFAULT_ADJUDICATOR_ID,
                     "adjudication_confidence": copy_optional(decision, "confidence"),
                     "adjudication_evidence_fields": copy_optional(
                         decision, "evidence_fields"
@@ -618,7 +606,7 @@ def build(args: argparse.Namespace) -> None:
 
 def parse_args() -> argparse.Namespace:
     task_root = Path(__file__).resolve().parent
-    expert_root = task_root / "expert_review"
+    expert_root = task_root / "scholar_annotation"
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--prelabels",

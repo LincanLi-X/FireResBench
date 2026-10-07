@@ -811,6 +811,8 @@ def confidence_for(
     row: pd.Series,
     config: dict[str, Any],
 ) -> float | None:
+    # rule_confidence is a deterministic review-routing score. It is not a
+    # calibrated class probability or a statistical uncertainty estimate.
     if not raw_label:
         return None
     c = config["confidence"]

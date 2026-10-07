@@ -1,17 +1,17 @@
 # FireResBench
 
-**FireResBench** is an event-centered benchmark for connecting
-evolving wildfire conditions with real-world emergency-response histories. It
-organizes heterogeneous wildfire records into temporally ordered
-**Fire-Day** sequences and supports reproducible study of two complementary
-problems:
+**FireResBench** is an event-centered benchmark for connecting evolving wildfire conditions with real-world emergency-response histories. It is built from reported wildfire incident records and aligned environmental observations. FireResBench organizes heterogeneous wildfire records into temporally ordered **Fire-Day** sequences and supports reproducible study of two complementary problems:
 
 1. **Task A -- Wildfire Lifecycle State Understanding:** classify the current
    Fire-Day into one of five operational lifecycle states.
 2. **Task B -- Next-Day Operational-Response Forecasting:** independently
    forecast next-day personnel and next-day incident cost.
 
-NOTE: This benchmark should not be treated as a real-time wildfire incident-command or automated resource-allocation system.
+> **NOTE:** FireResBench is intended for research, education, and reproducible comparison. It is not a real-time incident-command, dispatch, resource-allocation, fire-spread simulation, or prescriptive decision-support system.
+
+
+This repository releases FireResBench dataset artifacts and the code used for dataset construction, Task A pre-labeling and scholar-review integration, Task B target construction, incident-disjoint data splitting, and feature-allowlist generation. Its primary purpose is to support transparent dataset inspection, consistent task construction, and independent model development. This repository should not be interpreted as a complete reproduction package for every baseline result reported in the manuscript. The benchmark tasks, released splits, permitted input features, target definitions, and recommended evaluation metrics are documented so that users can implement and evaluate models within their own experimental frameworks.
+
 
 ## Benchmark at a glance
 
@@ -96,7 +96,7 @@ The original data source does not contain the wildfire lifecycle state labels, w
 
 **`Stage 1.`** **Deterministic pre-annotation.** Domain scholars and researchers define the lifecycle taxonomy, evidence thresholds, rule priority, and temporal constraints. The verified program derives evidence from fire age, area and growth, containment, FIRMS activity, reported fire behavior, personnel, and cost history, and then assigns a provisional state. 
 
-**`Stage 2.`** **Human scholar team review.** Two reviewer teams inspect Fire-Days in incident-level chronological context. A third team adjudicates every disagreement or deferral. Outputs retain the reviewer models, actions, rationales, agreement, adjudication, and evaluation-eligibility fields.
+**`Stage 2.`** **Human scholar team review.** Two reviewer teams inspect Fire-Days in incident-level chronological context. A third team adjudicates every disagreement or deferral. Outputs retain the review and adjudication actions, labels, rationales, confidence values, agreement status, and evaluation-eligibility fields.
 
 The Stage 1 implementation preserves the activated rules, evidence signals,
 confidence, transition status, missingness, and review-routing reasons for
@@ -130,8 +130,67 @@ Primary Task B metrics are personnel **MAE** and daily-cost **MAE** in their ori
 ## Repository structure
 
 ```text
-FireResBench Tree File Structure
-TO BE COMPLETED
+FireResBench/
+├── README.md
+├── LICENSE
+├── task_a_labeling/
+│   ├── README.md
+│   ├── DATA_SOURCES.md
+│   ├── build_task_a_stage1.py
+│   ├── build_task_a_stage2.py
+│   ├── lifecycle_rules_v1.yaml
+│   ├── docs/
+│   │   └── FireResBench_TaskA_Labeling_Guide.md
+│   ├── processed/
+│   │   └── fire_day_features_2017to2020.csv
+│   ├── labels/
+│   │   ├── automatic_prelabels.csv
+│   │   ├── expert_review_case_index.csv
+│   │   ├── expert_review_queue.csv
+│   │   ├── expert_review_template.csv
+│   │   └── final_expert_labels.csv
+│   ├── metadata/
+│   │   ├── incident_disjoint_splits.csv
+│   │   ├── stage2_data_dictionary.csv
+│   │   ├── task_a_data_dictionary.csv
+│   │   └── task_a_feature_allowlist.json
+│   └── scholar_annotation/
+│       ├── reviewer_a_decisions.csv
+│       ├── reviewer_b_decisions.csv
+│       ├── adjudication_queue.csv
+│       ├── adjudicator_decisions.csv
+│       ├── sequence_review_queue.csv
+│       ├── sequence_adjudicator_decisions.csv
+│       ├── sequence_review_queue_round2.csv
+│       ├── sequence_adjudicator_decisions_round2.csv
+│       ├── reviewer_agreement_statistics.json
+│       ├── reviewer_a_policy.md
+│       ├── reviewer_b_policy.md
+│       ├── adjudicator_policy.md
+│       ├── sequence_adjudicator_policy.md
+│       ├── build_expert_review_template.py
+│       ├── build_adjudication_queue.py
+│       └── build_sequence_review_queue.py
+└── task_b_labeling/
+    ├── README.md
+    ├── DATA_SOURCES.md
+    ├── build_task_b_2017to2020.py
+    ├── task_b_target_rules_v1.yaml
+    ├── docs/
+    │   └── FireResBench_TaskB_Labeling_Guide.md
+    ├── processed/
+    │   └── fire_res_bench_task_b_features_2017to2020.csv
+    ├── labels/
+    │   └── task_b_targets_2017to2020.csv
+    ├── metadata/
+    │   ├── incident_disjoint_splits.csv
+    │   ├── task_b_data_dictionary.csv
+    │   ├── task_b_feature_allowlist.json
+    │   ├── task_b_2017to2020_summary.csv
+    │   ├── task_b_target_status_summary.csv
+    │   └── cost_provenance_audit.csv
+    └── source/
+        └── ics209_as_reported_report_fields_2017to2020.csv
 ```
 
 
@@ -232,18 +291,18 @@ review template. Source details are documented in
 Task A Stage 2 validates and combines the files and annotations from two
 independent reviewer teams, the required row-level adjudications, and any
 sequence-adjudication decisions. Place the completed human-review files under
-`task_a_labeling/expert_review/`, or pass their locations explicitly. An initial
+`task_a_labeling/scholar_annotation/`, or pass their locations explicitly. An initial
 integration pass that writes the candidate labels and sequence-anomaly queue is:
 
 ```bash
 python task_a_labeling/build_task_a_stage2.py \
   --prelabels build/task_a_labeling/labels/automatic_prelabels.csv \
   --review-queue build/task_a_labeling/labels/expert_review_queue.csv \
-  --reviewer-a task_a_labeling/expert_review/reviewer_a_decisions.csv \
-  --reviewer-b task_a_labeling/expert_review/reviewer_b_decisions.csv \
-  --adjudicator task_a_labeling/expert_review/adjudicator_decisions.csv \
+  --reviewer-a task_a_labeling/scholar_annotation/reviewer_a_decisions.csv \
+  --reviewer-b task_a_labeling/scholar_annotation/reviewer_b_decisions.csv \
+  --adjudicator task_a_labeling/scholar_annotation/adjudicator_decisions.csv \
   --output build/task_a_labeling/labels/final_expert_labels.csv \
-  --sequence-anomalies build/task_a_labeling/expert_review/sequence_anomalies.csv \
+  --sequence-anomalies build/task_a_labeling/scholar_annotation/sequence_anomalies.csv \
   --skip-sequence-decisions
 ```
 
@@ -283,7 +342,8 @@ for target construction. Its relationship to the official archive is described
 in `task_b_labeling/DATA_SOURCES.md`. The Task B builder does not import code or
 data from `FireAgentBench`.
 
-## Evaluation and leakage prevention
+
+## Evaluation protocol and leakage prevention
 
 - Split data by `incident_id`, never by individual Fire-Days. Different days
   from one incident must not appear in both training and evaluation sets.
@@ -325,7 +385,7 @@ dispatch systems, local observations, agency procedures, or expert judgment.
 
 If you find FireResBench useful, please consider citing our work:
 ```
-@inproceedings{anonymous2026dimebench,
+@inproceedings{anonymous2026fireresbench,
   title     = {FireResBench: An Event-Centered Benchmark for Wildfire Lifecycle Understanding and Operational-Response Forecasting},
   author    = {Anonymous Authors},
   booktitle = {Under Review},

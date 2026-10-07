@@ -394,10 +394,10 @@ Rows with missing or conflicting core evidence retain an audit-priority flag reg
 ### 11.1 Separation of roles
 
 1. The research team and domain experts approve this rule document.
-2. A coding agent or developer translates the frozen specification into deterministic code.
+2. The research team translates the frozen specification into deterministic code.
 3. A researcher reviews the implementation line by line and tests synthetic cases.
 4. Only the verified program is executed on the full dataset.
-5. Neither the coding agent nor a free-form LLM directly assigns final labels.
+
 
 ### 11.2 Required output columns
 

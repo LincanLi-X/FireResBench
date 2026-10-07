@@ -1,0 +1,26 @@
+{
+  "adjudication_queue_rows": 7970,
+  "adjudication_reasons": {
+    "both_reviewers_deferred": 1405,
+    "reviewer_a_deferred": 2877,
+    "reviewer_b_deferred": 2405,
+    "reviewer_label_disagreement": 1283
+  },
+  "both_non_deferred_rows": 23950,
+  "cohen_kappa_among_non_deferred": 0.9234838386697071,
+  "exact_label_agreement_rate_among_non_deferred": 0.9464300626304801,
+  "exact_label_agreement_rows_among_non_deferred": 22667,
+  "reviewer_action_pairs": {
+    "accept|accept": 11917,
+    "accept|correct": 887,
+    "accept|defer": 1380,
+    "correct|accept": 241,
+    "correct|correct": 10905,
+    "correct|defer": 1025,
+    "defer|accept": 538,
+    "defer|correct": 2339,
+    "defer|defer": 1405
+  },
+  "reviewer_consensus_rows": 22667,
+  "stage2_queue_rows": 30637
+}

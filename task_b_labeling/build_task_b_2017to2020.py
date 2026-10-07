@@ -810,6 +810,8 @@ def main() -> None:
         raise ValueError("External feature alignment is incomplete")
     fire_days = fire_days.drop(columns="_merge")
 
+    # Task B targets reproduce as-reported next-day outcomes. They must not be
+    # interpreted as optimal staffing levels, causal effects, or resource needs.
     targets = construct_targets(fire_days, rules)
     splits = make_incident_splits(fire_days["incident_id"], rules)
 
